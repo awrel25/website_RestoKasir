@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('restokasir_theme');
+        if (saved === 'dark' || saved === 'light') {
+          document.documentElement.dataset.theme = saved;
+        } else {
+          document.documentElement.dataset.theme = 'light';
+        }
+      } catch (e) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    })();
+  </script>
+  <title>Pesan Menu Meja — RestoKasir</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l1.5-5h15L21 9" />
+            <path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" />
+            <path d="M5 12v8h14v-8" />
+            <path d="M9 20v-5h6v5" />
+          </svg>
+        </div>
+        <div class="brand-meta">
+          <h1 class="brand-title" id="restoNameDisplay">Memuat Menu...</h1>
+          <p class="brand-sub">Pemesanan Menu Meja</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <span class="table-pill" id="tableBadge">Meja 1</span>
+
+        <button
+          type="button"
+          class="icon-action-btn"
+          id="checkLastOrderBtn"
+          hidden
+          onclick="openLastOrderStatus()"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16l3-2 3 2 3-2 3 2 3-2V8z" />
+            <path d="M8 9h8" />
+            <path d="M8 13h6" />
+          </svg>
+          <span>Cek Pesanan</span>
+        </button>
+
+        <button
+          type="button"
+          class="icon-action-btn"
+          id="themeToggleBtn"
+          aria-pressed="false"
+          onclick="toggleTheme()"
+        >
+          <span class="theme-icon-moon" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+            </svg>
+          </span>
+          <span class="theme-icon-sun" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+            </svg>
+          </span>
+          <span id="themeToggleText">Putih</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="cashier-notice" aria-label="Petunjuk pemesanan meja">
+      <div class="cashier-notice-left">
+        <div class="cashier-notice-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 10h18" />
+            <path d="M6 10v10" />
+            <path d="M18 10v10" />
+            <path d="M4 6h16" />
+          </svg>
+        </div>
+        <div>
+          <p class="cashier-notice-title" id="noticeTableTitle">Anda memesan untuk Meja 1</p>
+          <p class="cashier-notice-desc">
+            Setelah mengirim pesanan, sebutkan nomor meja Anda ke kasir untuk dicek di aplikasi kasir.
+          </p>
+        </div>
+      </div>
+      <button type="button" class="table-edit-inline" onclick="promptTableNumber()">
+        Ubah Meja
+      </button>
+    </section>
+
+    <section class="controls-bar" aria-label="Pencarian dan kategori menu">
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+        </span>
+        <input
+          type="search"
+          id="searchInput"
+          class="search-input"
+          placeholder="Cari menu makanan atau minuman..."
+          aria-label="Cari menu makanan atau minuman"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="category-tabs" id="categoryTabs">
+        <button type="button" class="cat-tab active" data-cat="Semua">Semua</button>
+        <button type="button" class="cat-tab" data-cat="Makanan Utama">Makanan Utama</button>
+        <button type="button" class="cat-tab" data-cat="Snack &amp; Camilan">Snack &amp; Camilan</button>
+        <button type="button" class="cat-tab" data-cat="Minuman">Minuman</button>
+        <button type="button" class="cat-tab" data-cat="Dessert">Dessert</button>
+        <button type="button" class="cat-tab" data-cat="Paket Spesial">Paket Spesial</button>
+      </div>
+    </section>
+
+    <section aria-live="polite">
+      <div id="loadingGrid" class="loading-grid">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+
+      <div id="menuGrid" class="menu-grid" hidden></div>
+
+      <div id="emptyState" class="empty-state" hidden>
+        <h3>Menu belum tersedia</h3>
+        <p id="emptyDesc">Belum ada menu yang sesuai dengan pencarian atau stok sedang kosong.</p>
+        <button type="button" class="retry-btn" onclick="resetFiltersAndFetch()">Muat Ulang Menu</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="floating-cart-bar" id="floatingCartBar" aria-live="polite">
+    <div class="cart-bar-left">
+      <div class="cart-count-pill tabular" id="cartCountPill">0 item</div>
+      <div class="cart-bar-meta">
+        <div class="cart-bar-label" id="cartBarTableInfo">Meja 1</div>
+        <div class="cart-bar-total tabular" id="cartBarTotal">Rp 0</div>
+      </div>
+    </div>
+    <button type="button" class="btn-checkout-bar" onclick="openCartModal()">
+      Periksa Pesanan
+    </button>
+  </div>
+
+  <!-- Native Dialog: Checkout Keranjang -->
+  <dialog id="cartModal" class="app-dialog" closedby="any" aria-labelledby="cartDialogTitle">
+    <div class="modal-header">
+      <h2 class="modal-title" id="cartDialogTitle">Konfirmasi Pesanan</h2>
+      <button type="button" class="modal-close" aria-label="Tutup jendela" onclick="closeCartModal()">
+        &times;
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div id="cartItemsContainer"></div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="tableNumberInput">Nomor Meja *</label>
+          <input
+            type="number"
+            id="tableNumberInput"
+            class="form-input tabular"
+            min="1"
+            max="99"
+            value="1"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="customerNameInput">Nama Pemesan *</label>
+          <input
+            type="text"
+            id="customerNameInput"
+            class="form-input"
+            placeholder="Contoh: Budi"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="orderNotesInput">Catatan Tambahan (Opsional)</label>
+        <input
+          type="text"
+          id="orderNotesInput"
+          class="form-input"
+          placeholder="Contoh: Tanpa pedas, es dipisah"
+        />
+      </div>
+
+      <div class="form-group">
+        <span class="form-label">Metode Pembayaran</span>
+        <div class="payment-options">
+          <button
+            type="button"
+            class="pay-option active"
+            data-method="Bayar di Kasir"
+            onclick="selectPayment(this)"
+          >
+            <span class="pay-option-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="6" width="20" height="12" rx="2" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+              Bayar di Kasir
+            </span>
+            <span class="pay-option-desc">Sebutkan nomor meja ke kasir</span>
+          </button>
+
+          <button
+            type="button"
+            class="pay-option"
+            data-method="QRIS"
+            onclick="selectPayment(this)"
+          >
+            <span class="pay-option-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <path d="M14 14h3v3h-3zM17 17h4v4h-4z" />
+              </svg>
+              QRIS Instan
+            </span>
+            <span class="pay-option-desc">Bayar langsung dari ponsel</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        <div class="summary-line">
+          <span>Subtotal Menu</span>
+          <span class="tabular" id="modalSubtotal">Rp 0</span>
+        </div>
+        <div class="summary-line">
+          <span>Biaya Layanan (5%)</span>
+          <span class="tabular" id="modalService">Rp 0</span>
+        </div>
+        <div class="summary-total">
+          <span>Total Pembayaran</span>
+          <span class="tabular" id="modalTotal">Rp 0</span>
+        </div>
+      </div>
+
+      <div class="cashier-callout">
+        Penting: setelah menekan Kirim Pesanan, sebutkan nomor meja Anda kepada kasir agar pesanan langsung dicek dan diproses di aplikasi kasir.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-primary-full" id="btnSubmitOrder" onclick="submitOrder()">
+        Kirim Pesanan ke Kasir
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Native Dialog: Status & Keterangan Nomor Meja -->
+  <dialog id="successModal" class="app-dialog" closedby="any" aria-labelledby="successDialogTitle">
+    <div class="modal-header">
+      <h2 class="modal-title" id="successDialogTitle">Status Pesanan Meja</h2>
+      <button type="button" class="modal-close" aria-label="Tutup jendela" onclick="closeSuccessModal()">
+        &times;
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="status-banner" id="orderStatusBanner">
+        <div class="status-banner-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <div>
+          <p class="status-banner-title" id="orderStatusTitle">Pesanan Terkirim ke Kasir</p>
+          <p class="status-banner-sub" id="orderStatusSub">Status di kasir: Menunggu dicek</p>
+        </div>
+      </div>
+
+      <div class="table-verify-box">
+        <div class="table-verify-label">Sebutkan Nomor Meja Ini ke Kasir</div>
+        <div class="table-verify-number" id="successTableNumber">Meja 1</div>
+        <p class="table-verify-text">
+          Mohon sebutkan nomor meja Anda ke kasir untuk dicek di aplikasi kasir dan dicetak struknya.
+        </p>
+      </div>
+
+      <div class="order-receipt-card" id="successOrderDetails"></div>
+
+      <div class="qris-instant-box" id="qrisInstantBox" hidden>
+        <p class="cashier-notice-title">Pembayaran QRIS</p>
+        <p class="cashier-notice-desc" style="color: var(--text-muted); margin-bottom: 0.25rem;">
+          Scan QR berikut atau tekan tombol konfirmasi di bawah untuk menyelesaikan pembayaran, lalu sebutkan nomor meja Anda ke kasir.
+        </p>
+        <div class="qris-canvas-frame">
+          <div id="webQrisCanvas"></div>
+        </div>
+        <button type="button" class="btn-primary-full" id="btnConfirmWebQris" onclick="confirmWebQrisPayment()">
+          Konfirmasi Pembayaran QRIS
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary-full" onclick="closeSuccessModal()">
+        Kembali ke Menu
+      </button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toastEl" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
