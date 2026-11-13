@@ -1,12 +1,11 @@
-
 name: Deploy Customer Website
 
 on:
   push:
     branches:
-      - main
+      - master
     paths:
-      - 'customer_web/**'
+      - '**'
       - '.github/workflows/deploy-website.yml'
   workflow_dispatch:
 
@@ -37,7 +36,7 @@ jobs:
       - name: Upload Website
         uses: actions/upload-pages-artifact@v3
         with:
-          path: customer_web
+          path: .
 
       - name: Deploy Website
         id: deployment
