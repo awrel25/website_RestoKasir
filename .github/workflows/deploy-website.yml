@@ -5,8 +5,8 @@ on:
     branches:
       - master
     paths:
-      - '**'
-      - '.github/workflows/deploy-website.yml'
+      - 'customer_web/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
@@ -36,7 +36,7 @@ jobs:
       - name: Upload Website
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: customer_web
 
       - name: Deploy Website
         id: deployment
