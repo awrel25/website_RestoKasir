@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
@@ -1315,10 +1315,47 @@ dialog.app-dialog::backdrop {
   margin-bottom: 0.5rem;
 }
 
-.detail-desc {
-  font-size: 0.8125rem;
+.detail-desc-box {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 0.875rem;
+  margin: 0.625rem 0 0.5rem;
+  text-align: left;
+}
+
+.detail-desc-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
-  line-height: 1.45;
+  margin-bottom: 0.25rem;
+}
+
+.detail-desc {
+  font-size: 0.84rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.detail-table-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 0.25rem;
+}
+
+.menu-desc-snippet {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin-top: 0.25rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .detail-qty-row {
@@ -2227,7 +2264,7 @@ dialog.app-dialog::backdrop {
         <!-- Mode B: Instruksi Pembayaran Melalui Kasir -->
         <div class="cashier-instruction-box" id="cashierInstructionBox" hidden>
           <strong>Pesanan Sudah Masuk di Kasir Restoran</strong><br />
-          Tunjukkan nomor meja dan nomor pesanan ini kepada kasir untuk melakukan pembayaran. Status di halaman ini akan otomatis berubah menjadi <strong>PAID (Selesai)</strong> setelah kasir mengonfirmasi.
+          Silakan tunjukkan nomor meja dan nomor pesanan kepada kasir untuk melakukan pembayaran. Status di halaman ini akan otomatis berubah menjadi <strong>PAID (Selesai)</strong> setelah kasir mengonfirmasi.
         </div>
 
         <div class="order-receipt-card" id="flowOrderDetails"></div>
@@ -2959,6 +2996,11 @@ function renderMenuGrid() {
         '<h3 class="menu-name">' +
         escapeHtml(p.name) +
         '</h3>' +
+        (p.description && String(p.description).trim()
+          ? '<p class="menu-desc-snippet">' +
+            escapeHtml(String(p.description).trim()) +
+            '</p>'
+          : '') +
         '</div>' +
         '</button>' +
         '<div class="menu-footer">' +
@@ -3032,11 +3074,21 @@ function renderProductDetailDialog(productId) {
     '<div class="detail-price tabular">' +
     formatRupiah(product.price) +
     '</div>' +
-    '<p class="detail-desc">Pesanan untuk <strong>' +
+    '<div class="detail-desc-box">' +
+    '<div class="detail-desc-label">Deskripsi Makanan</div>' +
+    '<p class="detail-desc' +
+    (product.description && String(product.description).trim() ? '' : ' text-muted') +
+    '">' +
+    escapeHtml(
+      product.description && String(product.description).trim()
+        ? String(product.description).trim()
+        : 'Belum ada deskripsi makanan yang dicantumkan pada aplikasi kasir.'
+    ) +
+    '</p>' +
+    '</div>' +
+    '<p class="detail-table-note">Pesanan untuk <strong>' +
     escapeHtml(formatTableLabel(lockedTableNumber)) +
-    '</strong> akan langsung diteruskan ke sistem kasir ' +
-    escapeHtml(state.restoName) +
-    '.</p>';
+    '</strong> akan langsung diteruskan ke sistem kasir.</p>';
 
   const footer = document.getElementById('detailModalFooter');
   if (inCart > 0) {

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - main
     paths:
       - 'customer_web/**'
       - '.github/workflows/**'
