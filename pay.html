@@ -2,23 +2,9 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="light dark" />
-  <script>
-    (function () {
-      try {
-        var saved = localStorage.getItem('restokasir_theme');
-        if (saved === 'dark' || saved === 'light') {
-          document.documentElement.dataset.theme = saved;
-        } else {
-          document.documentElement.dataset.theme = 'light';
-        }
-      } catch (e) {
-        document.documentElement.dataset.theme = 'light';
-      }
-    })();
-  </script>
-  <title>Konfirmasi Pembayaran QRIS — RestoKasir</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <title>Pembayaran QRIS — RestoKasir</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -31,39 +17,22 @@
       --bg: #ffffff;
       --surface: #f8f7f4;
       --card: #ffffff;
-      --border: #e7e5e0;
+      --border: #e6e2dc;
       --text: #171614;
       --text-muted: #6b6862;
       --primary: #ea580c;
       --primary-hover: #c2410c;
       --primary-tint: #fff7ed;
-      --yellow: #facc15;
-      --amber: #f59e0b;
-      --yellow-soft: #fef9c3;
-      --yellow-text: #854d0e;
-      --success: #16a34a;
+      --primary-border: #fed7aa;
+      --dark-accent: #171614;
+      --success: #15803d;
       --success-soft: #dcfce7;
-      --success-text: #166534;
+      --success-border: #bbf7d0;
       --danger: #dc2626;
-      --danger-soft: #fee2e2;
+      --danger-soft: #fef2f2;
+      --danger-border: #fecaca;
       --font-display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
       --font-body: 'Figtree', system-ui, -apple-system, sans-serif;
-    }
-
-    :root[data-theme='dark'] {
-      color-scheme: dark;
-      --bg: #0a0a0b;
-      --surface: #141416;
-      --card: #19191d;
-      --border: #2b2b30;
-      --text: #fafafa;
-      --text-muted: #a1a1aa;
-      --primary-tint: #28160c;
-      --yellow-soft: #261f0d;
-      --yellow-text: #facc15;
-      --success-soft: #0f291a;
-      --success-text: #4ade80;
-      --danger-soft: #2a1215;
     }
 
     * {
@@ -81,15 +50,15 @@
       font-family: var(--font-body);
       font-size: 1rem;
       line-height: 1.5;
-      background-color: var(--bg);
+      background-color: var(--surface);
       color: var(--text);
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1.25rem;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      padding: max(1.25rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1.25rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
     }
 
     .pay-shell {
@@ -101,6 +70,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.75rem;
       margin-bottom: 0.875rem;
     }
 
@@ -108,11 +78,12 @@
       display: flex;
       align-items: center;
       gap: 0.625rem;
+      min-width: 0;
     }
 
     .brand-icon {
-      width: 2.25rem;
-      height: 2.25rem;
+      width: 2.375rem;
+      height: 2.375rem;
       border-radius: 10px;
       background-color: var(--primary);
       color: #ffffff;
@@ -126,25 +97,30 @@
       font-weight: 700;
     }
 
-    .theme-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.375rem;
-      padding: 0.375rem 0.75rem;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background-color: var(--surface);
-      color: var(--text);
-      font-size: 0.8125rem;
-      font-weight: 600;
-      cursor: pointer;
+    .table-badge {
+      font-family: var(--font-display);
+      pointer-events: none;
+      user-select: none;
+      flex-shrink: 0;
+      white-space: nowrap;
+      padding: 0.3125rem 0.75rem;
+      border-radius: 999px;
+      background-color: var(--dark-accent);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .table-badge[hidden] {
+      display: none;
     }
 
     .pay-card {
       background-color: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 1.5rem 1.25rem;
+      padding: clamp(1.25rem, 5vw, 1.5rem) clamp(1rem, 5vw, 1.25rem);
+      box-shadow: 0 1px 2px rgba(23, 22, 20, 0.05);
     }
 
     .badge-qris {
@@ -153,9 +129,9 @@
       gap: 0.375rem;
       padding: 0.3125rem 0.75rem;
       border-radius: 999px;
-      background-color: var(--yellow-soft);
-      border: 1px solid var(--amber);
-      color: var(--yellow-text);
+      background-color: var(--primary-tint);
+      border: 1px solid var(--primary-border);
+      color: var(--primary);
       font-size: 0.75rem;
       font-weight: 700;
       margin-bottom: 0.875rem;
@@ -195,9 +171,10 @@
 
     .amount-value {
       font-family: var(--font-display);
-      font-size: 1.875rem;
+      font-size: clamp(1.5rem, 8vw, 1.875rem);
       font-weight: 800;
       font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
       color: var(--text);
     }
 
@@ -226,16 +203,17 @@
     }
 
     .meta-row strong {
+      min-width: 0;
       text-align: right;
-      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .table-reminder {
       padding: 0.75rem 0.875rem;
       border-radius: 10px;
-      background-color: var(--yellow-soft);
-      border: 1px solid var(--amber);
-      color: var(--yellow-text);
+      background-color: var(--primary-tint);
+      border: 1px solid var(--primary-border);
+      color: var(--text);
       font-size: 0.8125rem;
       font-weight: 600;
       margin-bottom: 1rem;
@@ -247,6 +225,7 @@
 
     .btn-pay {
       width: 100%;
+      min-height: 3rem;
       padding: 0.875rem 1rem;
       border-radius: 12px;
       border: none;
@@ -262,6 +241,11 @@
       background-color: var(--primary-hover);
     }
 
+    .btn-pay:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
     .btn-pay:disabled {
       opacity: 0.6;
       cursor: not-allowed;
@@ -272,9 +256,10 @@
       padding: 0.75rem;
       border-radius: 10px;
       background-color: var(--danger-soft);
-      border: 1px solid var(--danger);
+      border: 1px solid var(--danger-border);
       color: var(--danger);
       font-size: 0.8125rem;
+      font-weight: 600;
     }
 
     .error-box[hidden] {
@@ -295,8 +280,8 @@
       height: 3.5rem;
       border-radius: 999px;
       background-color: var(--success-soft);
-      border: 1px solid var(--success);
-      color: var(--success-text);
+      border: 1px solid var(--success-border);
+      color: var(--success);
       display: grid;
       place-items: center;
       margin: 0 auto 1rem;
@@ -319,7 +304,7 @@
       padding: 0.875rem;
       border-radius: 12px;
       background-color: var(--primary-tint);
-      border: 1px solid var(--primary);
+      border: 1px solid var(--primary-border);
       font-size: 0.8125rem;
       color: var(--text);
       font-weight: 600;
@@ -341,9 +326,7 @@
         <span class="brand-name">Pembayaran QRIS</span>
       </div>
 
-      <button type="button" class="theme-btn" id="themeToggleBtn" aria-pressed="false" onclick="toggleTheme()">
-        <span id="themeToggleText">Putih</span>
-      </button>
+      <span class="table-badge" id="topTableBadge" hidden>Meja 1</span>
     </div>
 
     <div class="pay-card">
@@ -376,7 +359,7 @@
           Setelah pembayaran selesai, sebutkan <strong id="tableReminderNumber">Meja 1</strong> ke kasir agar pesanan dicek di aplikasi kasir.
         </div>
 
-        <button type="button" class="btn-pay" id="btnCompletePay" onclick="completePayment()">
+        <button type="button" class="btn-pay" id="btnCompletePay">
           Selesaikan Pembayaran
         </button>
 
@@ -405,23 +388,6 @@
     const SUPABASE_ANON_KEY =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpbnVtdHR0d2t3bHVydnF2aWRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTUxNTcsImV4cCI6MjEwMDI3MTE1N30.eSfjbxge6LA8fIqP9Cnepld7s4PgQgh_Eqi3O58DI1M';
 
-    function syncThemeBtn() {
-      const isDark = document.documentElement.dataset.theme === 'dark';
-      const btn = document.getElementById('themeToggleBtn');
-      const txt = document.getElementById('themeToggleText');
-      if (btn) btn.setAttribute('aria-pressed', String(isDark));
-      if (txt) txt.textContent = isDark ? 'Hitam' : 'Putih';
-    }
-
-    function toggleTheme() {
-      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      try {
-        localStorage.setItem('restokasir_theme', next);
-      } catch (e) {}
-      syncThemeBtn();
-    }
-
     function formatRupiah(num) {
       const n = Math.round(Number(num) || 0);
       return 'Rp ' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -433,21 +399,28 @@
     const amount = params.get('amt') || params.get('amount') || '0';
     const restoName = params.get('resto') || 'RestoKasir Nusantara';
     const refId = params.get('ref') || invoiceNo;
-    const tableNum = params.get('table') || '';
+    const rawTable = (params.get('table') || '').trim();
+    const tableNum = /^\d+$/.test(rawTable) ? parseInt(rawTable, 10) : null;
 
     document.addEventListener('DOMContentLoaded', () => {
-      syncThemeBtn();
       document.getElementById('merchantName').textContent = restoName;
       document.getElementById('amountDisplay').textContent = formatRupiah(amount);
       document.getElementById('invoiceDisplay').textContent = invoiceNo;
       document.getElementById('refDisplay').textContent = refId;
 
-      if (tableNum) {
+      if (tableNum && tableNum >= 1) {
+        const label = 'Meja ' + tableNum;
+        document.getElementById('topTableBadge').textContent = label;
+        document.getElementById('topTableBadge').hidden = false;
         document.getElementById('tableMetaRow').hidden = false;
-        document.getElementById('tableDisplay').textContent = 'Meja ' + tableNum;
+        document.getElementById('tableDisplay').textContent = label;
         document.getElementById('tableReminder').hidden = false;
-        document.getElementById('tableReminderNumber').textContent = 'Meja ' + tableNum;
+        document.getElementById('tableReminderNumber').textContent = label;
       }
+
+      document
+        .getElementById('btnCompletePay')
+        .addEventListener('click', completePayment);
     });
 
     async function completePayment() {
@@ -484,7 +457,7 @@
         document.getElementById('checkoutView').hidden = true;
         document.getElementById('successView').hidden = false;
 
-        if (tableNum) {
+        if (tableNum && tableNum >= 1) {
           document.getElementById('successDetailBox').textContent =
             'Pembayaran ' +
             formatRupiah(amount) +
