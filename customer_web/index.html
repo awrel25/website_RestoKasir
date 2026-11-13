@@ -1,0 +1,4053 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <title>Pesan Menu Meja — RestoKasir</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+/* ============================================================================
+   RestoKasir Customer Self-Order — Compact QR Barcode Theme
+   Palet: Oranye (#EA580C), Putih (#FFFFFF), Off-White (#F8F7F4), Dark (#171614)
+   ============================================================================ */
+
+:root {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --surface: #f8f7f4;
+  --card: #ffffff;
+  --border: #e6e2dc;
+  --border-strong: #d4cfc7;
+  --text: #171614;
+  --text-muted: #6b6862;
+  --input-bg: #f8f7f4;
+
+  --primary: #ea580c;
+  --primary-hover: #c2410c;
+  --primary-tint: #fff7ed;
+  --primary-border: #fed7aa;
+  --dark-accent: #171614;
+
+  --amber: #d97706;
+  --amber-soft: #fef3c7;
+  --amber-border: #fde68a;
+  --amber-text: #92400e;
+
+  --success: #15803d;
+  --success-soft: #dcfce7;
+  --success-border: #bbf7d0;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --danger-border: #fecaca;
+  --warning-text: #9a3412;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+
+  /* Skala spasi rapat & konsisten */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+
+  /* Grid margin & gap seragam di seluruh halaman */
+  --page-max: 66rem;
+  --gutter: 0.625rem;
+  --grid-gap: 0.625rem;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --gutter-l: max(var(--gutter), var(--safe-left));
+  --gutter-r: max(var(--gutter), var(--safe-right));
+  --shadow-sm: 0 1px 2px rgba(23, 22, 20, 0.04);
+  --shadow-md: 0 10px 28px rgba(23, 22, 20, 0.14);
+
+  --font-display: 'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --gutter: 0.875rem;
+    --grid-gap: 0.75rem;
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    --gutter: 1rem;
+    --grid-gap: 0.75rem;
+  }
+}
+
+[hidden] {
+  display: none !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-size: 100%;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--text);
+  background-color: var(--surface);
+  min-height: 100dvh;
+  overflow-x: clip;
+  padding-bottom: var(--space-4);
+  -webkit-font-smoothing: antialiased;
+}
+
+body.has-cart {
+  padding-bottom: calc(4.75rem + var(--safe-bottom));
+}
+
+h1,
+h2,
+h3,
+h4,
+.brand-title,
+.table-pill,
+.menu-price,
+.cart-bar-total,
+.detail-price,
+.summary-total,
+.receipt-line--total strong {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* ============================================================================
+   Header (Sticky, Compact, Nomor Meja Terkunci Permanen)
+   ============================================================================ */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding-top: var(--safe-top);
+  background-color: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  width: 100%;
+  max-width: var(--page-max);
+  min-height: 3.125rem;
+  margin-inline: auto;
+  padding: 0.4375rem var(--gutter-r) 0.4375rem var(--gutter-l);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.brand-meta {
+  min-width: 0;
+}
+
+.brand-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand-sub {
+  font-size: 0.71875rem;
+  line-height: 1.25;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+/* Tombol Cek Pesanan di Header */
+.btn-check-order {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  height: 1.875rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
+  border: 1px solid var(--primary-border);
+  background-color: var(--primary-tint);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-check-order:hover {
+  background-color: #ffedd5;
+  border-color: var(--primary);
+}
+
+.btn-check-order svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
+  flex-shrink: 0;
+}
+
+.check-order-dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background-color: var(--primary);
+  flex-shrink: 0;
+}
+
+.check-order-dot.paid {
+  background-color: var(--success);
+}
+
+/* Banner ringkas status pesanan aktif di atas pencarian */
+.active-order-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6875rem;
+  border-radius: var(--radius-md);
+  background-color: var(--primary-tint);
+  border: 1px solid var(--primary-border);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.active-order-bar:hover {
+  border-color: var(--primary);
+}
+
+.active-order-bar.is-paid {
+  background-color: var(--success-soft);
+  border-color: var(--success-border);
+}
+
+.active-order-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.active-order-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background-color: var(--primary);
+  flex-shrink: 0;
+}
+
+.active-order-bar.is-paid .active-order-dot {
+  background-color: var(--success);
+}
+
+.active-order-meta {
+  min-width: 0;
+}
+
+.active-order-title {
+  font-size: 0.78125rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.active-order-sub {
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.active-order-cta {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5625rem;
+  border-radius: 999px;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.active-order-bar.is-paid .active-order-cta {
+  color: var(--success);
+}
+
+/* Indikator 2 tahap pengiriman ke kasir di dalam modal Cek Pesanan */
+.kasir-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.kasir-step {
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4375rem;
+}
+
+.kasir-step.done {
+  background-color: var(--success-soft);
+  border-color: var(--success-border);
+}
+
+.kasir-step.pending {
+  background-color: var(--amber-soft);
+  border-color: var(--amber-border);
+}
+
+.kasir-step-badge {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background-color: var(--border-strong);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+}
+
+.kasir-step.done .kasir-step-badge {
+  background-color: var(--success);
+}
+
+.kasir-step.pending .kasir-step-badge {
+  background-color: var(--amber);
+}
+
+.kasir-step-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.kasir-step-desc {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--text-muted);
+  margin-top: 0.0625rem;
+}
+
+.empty-order-check {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-strong);
+  background-color: var(--surface);
+}
+
+.empty-order-check-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background-color: var(--primary-tint);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 0.625rem;
+}
+
+.empty-order-check h3 {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.empty-order-check p {
+  font-size: 0.78125rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.modal-footer-row {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.modal-footer-row > button {
+  flex: 1 1 0;
+}
+
+/* Badge nomor meja permanen — tidak dapat diklik atau diubah */
+.table-pill {
+  font-family: var(--font-display);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  height: 1.875rem;
+  padding: 0 0.6875rem;
+  border-radius: 999px;
+  background-color: var(--dark-accent);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.table-pill svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: #fb923c;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   Main Container & Ritme Layout Rapat
+   ============================================================================ */
+.main-content {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: var(--grid-gap) var(--gutter-r) var(--space-4) var(--gutter-l);
+}
+
+#orderingContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--grid-gap);
+}
+
+.invalid-qr-card {
+  max-width: 28rem;
+  margin: var(--space-6) auto;
+  padding: var(--space-5) var(--space-4);
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.invalid-qr-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  margin: 0 auto var(--space-3);
+  border-radius: 999px;
+  background-color: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  display: grid;
+  place-items: center;
+}
+
+.invalid-qr-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 999px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.invalid-qr-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.375rem;
+}
+
+.invalid-qr-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   Search & Category Filters (Sejajar Presisi dengan Grid Margin)
+   ============================================================================ */
+.controls-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.search-form {
+  width: 100%;
+}
+
+.search-wrap {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  display: inline-flex;
+}
+
+.search-input {
+  width: 100%;
+  height: 2.375rem;
+  padding: 0.375rem 0.75rem 0.375rem 2.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--text);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  transition: border-color 0.15s ease;
+}
+
+@media (max-width: 599.98px) {
+  .search-input {
+    font-size: 1rem;
+  }
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Tab kategori sejajar persis dengan tepi kiri & kanan grid */
+.category-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  margin-inline: 0;
+  padding: 1px 0;
+  scrollbar-width: none;
+}
+
+.category-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 2rem;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .cat-tab:hover {
+    border-color: var(--primary);
+    color: var(--text);
+  }
+}
+
+.cat-tab.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+/* ============================================================================
+   Spinner Loading State
+   ============================================================================ */
+@property --arc-start {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --arc-end {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --progress-dash-animation {
+  syntax: '*';
+  inherits: false;
+  initial-value: progress-dash 2.2s ease-in-out infinite;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+progress.loading-spinner {
+  --_from: calc(90deg + var(--arc-start, 0deg));
+  --_to: calc(90deg + var(--arc-end, 158deg));
+  --size: 2rem;
+  --thickness: 3px;
+  --spinner-color: var(--primary);
+  --track-color: var(--border);
+  --spinner-duration: 1.2s;
+  --_used-spinner-duration: var(--spinner-duration);
+
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  appearance: none;
+  border: 0;
+  background: conic-gradient(
+      from var(--_from),
+      var(--spinner-color) calc(var(--_to) - var(--_from)),
+      transparent 0
+    )
+    var(--track-color);
+  animation:
+    progress-spin var(--_used-spinner-duration) linear infinite,
+    var(--progress-dash-animation);
+}
+
+progress.loading-spinner.loading-spinner--sm {
+  --size: 1.5rem;
+  --thickness: 2.5px;
+}
+
+progress.loading-spinner:indeterminate::-webkit-progress-bar,
+progress.loading-spinner:indeterminate::-webkit-progress-value,
+progress.loading-spinner:indeterminate::-moz-progress-bar {
+  display: none;
+  background: none;
+}
+
+@supports (background-clip: border-area) {
+  progress.loading-spinner:indeterminate {
+    background-clip: border-area;
+    border: var(--thickness) solid transparent;
+    background-origin: border-box;
+  }
+}
+
+@supports not (background-clip: border-area) {
+  progress.loading-spinner:indeterminate {
+    --clip-boundary: calc(100% - var(--thickness));
+    mask-image: radial-gradient(
+      farthest-side,
+      transparent var(--clip-boundary),
+      black var(--clip-boundary)
+    );
+  }
+}
+
+@keyframes progress-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@keyframes progress-dash {
+  from {
+    --arc-start: 0deg;
+    --arc-end: 3deg;
+  }
+  50% {
+    --arc-start: 100deg;
+    --arc-end: 340deg;
+  }
+  to {
+    --arc-start: 360deg;
+    --arc-end: 363deg;
+  }
+}
+
+/* ============================================================================
+   Menu Grid & Product Cards (Rapat, Rata, Tanpa Celah Berlebih)
+   ============================================================================ */
+.menu-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  align-items: stretch;
+}
+
+@media (min-width: 560px) {
+  .menu-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 860px) {
+  .menu-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.menu-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .menu-card:hover {
+    border-color: var(--primary);
+  }
+}
+
+.menu-card.out-of-stock {
+  opacity: 0.62;
+}
+
+.menu-detail-trigger {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-detail-trigger:focus-visible {
+  outline-offset: -2px;
+}
+
+.menu-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.menu-thumb img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.menu-thumb-placeholder {
+  position: absolute;
+  inset: 0;
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+}
+
+.menu-thumb-placeholder svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.stock-badge {
+  position: absolute;
+  z-index: 2;
+  top: 0.375rem;
+  right: 0.375rem;
+  padding: 0.125rem 0.4375rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.25;
+  background-color: rgba(255, 255, 255, 0.94);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.stock-badge.low {
+  background-color: var(--amber-soft);
+  border-color: var(--amber-border);
+  color: var(--amber-text);
+}
+
+.stock-badge.empty {
+  background-color: var(--danger-soft);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.menu-body {
+  padding: 0.5rem 0.625rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.menu-cat-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-name {
+  font-size: 0.84375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Footer rapat & seragam: jarak judul -> harga -> tombol identik di setiap kartu */
+.menu-footer {
+  margin-top: auto;
+  padding: 0.125rem 0.625rem 0.625rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.375rem;
+}
+
+.menu-price {
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+/* Tinggi tombol +Tambah dan Stepper dikunci persis 34px (2.125rem) agar tidak lompat */
+.btn-add {
+  height: 2.125rem;
+  min-height: 2.125rem;
+  padding: 0 0.625rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 0.78125rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-footer .btn-add,
+.menu-footer .qty-stepper {
+  width: 100%;
+}
+
+.menu-footer .qty-stepper {
+  justify-content: space-between;
+}
+
+@media (min-width: 600px) {
+  .menu-body {
+    padding: 0.5625rem 0.6875rem 0.25rem;
+  }
+
+  .menu-name {
+    font-size: 0.875rem;
+  }
+
+  .menu-price {
+    font-size: 0.9375rem;
+  }
+
+  .menu-footer {
+    padding: 0.125rem 0.6875rem 0.6875rem;
+  }
+}
+
+.btn-add:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.btn-add:disabled {
+  background-color: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.qty-stepper {
+  height: 2.125rem;
+  min-height: 2.125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.qty-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  min-height: 1.75rem;
+  border-radius: 6px;
+  border: none;
+  background-color: var(--card);
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.qty-btn.plus {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.qty-count {
+  min-width: 1.25rem;
+  text-align: center;
+  font-size: 0.84375rem;
+  font-weight: 700;
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+.empty-state {
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background-color: var(--card);
+}
+
+.empty-state h3 {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.empty-state p {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 0.875rem;
+}
+
+.retry-btn {
+  min-height: 2.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   Floating Cart Bar (Rapat & Sejajar Gutter)
+   ============================================================================ */
+.floating-cart-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(0.625rem + var(--safe-bottom));
+  transform: translate(-50%, calc(100% + 2rem + var(--safe-bottom)));
+  visibility: hidden;
+  width: min(34rem, calc(100% - var(--gutter-l) - var(--gutter-r)));
+  z-index: 45;
+  padding: 0.5625rem 0.75rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--card);
+  border: 1.5px solid var(--primary);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  transition: transform 0.22s ease, visibility 0s linear 0.22s;
+}
+
+.floating-cart-bar.visible {
+  transform: translate(-50%, 0);
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.cart-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.cart-count-pill {
+  padding: 0.3125rem 0.625rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cart-bar-meta {
+  min-width: 0;
+}
+
+.cart-bar-label {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.cart-bar-total {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.btn-checkout-bar {
+  height: 2.375rem;
+  padding: 0 1rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-checkout-bar:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ============================================================================
+   Native <dialog> Modals
+   ============================================================================ */
+dialog.app-dialog {
+  --modal-pad: 0.875rem;
+
+  margin: auto;
+  width: min(30rem, calc(100% - 1.5rem));
+  max-width: none;
+  max-height: min(90dvh, 46rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+dialog.app-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+dialog.app-dialog::backdrop {
+  background-color: rgba(23, 22, 20, 0.6);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+@media (min-width: 600px) {
+  dialog.app-dialog {
+    --modal-pad: 1.125rem;
+  }
+}
+
+@media (max-width: 599.98px) {
+  dialog.app-dialog {
+    margin: auto 0 0;
+    width: 100%;
+    max-height: 92dvh;
+    border-width: 1px 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}
+
+.modal-header {
+  flex-shrink: 0;
+  min-height: 3.125rem;
+  padding: 0.625rem var(--modal-pad);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  background-color: var(--card);
+}
+
+.modal-title {
+  min-width: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.modal-close {
+  flex-shrink: 0;
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.modal-body {
+  padding: 0.875rem var(--modal-pad);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.modal-body--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.modal-body--stack > * {
+  flex-shrink: 0;
+}
+
+.modal-footer {
+  flex-shrink: 0;
+  padding: 0.625rem var(--modal-pad) calc(0.625rem + var(--safe-bottom));
+  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Product Detail Modal */
+.detail-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  max-height: 32dvh;
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.detail-hero img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.detail-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: 0.375rem;
+}
+
+.detail-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.detail-price {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.detail-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.detail-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.detail-qty-label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+/* Cart Items & Form */
+.cart-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0.5625rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cart-item-row:first-child {
+  padding-top: 0;
+}
+
+.cart-item-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.cart-item-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.cart-item-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Kartu Nomor Meja Terkunci (Read-Only, Tidak Bisa Diubah) */
+.locked-table-card {
+  margin-top: 0.75rem;
+  padding: 0.5625rem 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  pointer-events: none;
+  user-select: none;
+}
+
+.locked-table-label {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.locked-table-value {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.locked-table-tag {
+  flex-shrink: 0;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  background-color: var(--primary-tint);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.form-group {
+  margin-top: 0.75rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.78125rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.71875rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.form-input {
+  width: 100%;
+  height: 2.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background-color: var(--input-bg);
+  color: var(--text);
+  font-size: 1rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.form-input:focus {
+  border-color: var(--primary);
+  background-color: var(--card);
+}
+
+.form-input:is(:user-invalid, .user-invalid-fallback) {
+  border-color: var(--danger);
+  background-color: var(--danger-soft);
+}
+
+.field-error {
+  display: none;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--danger);
+  align-items: center;
+  gap: 0.3125rem;
+}
+
+.form-input:is(:user-invalid, .user-invalid-fallback) + .field-error {
+  display: flex;
+}
+
+.payment-fieldset {
+  border: 0;
+  min-width: 0;
+  margin-top: 0.75rem;
+}
+
+.payment-fieldset legend {
+  font-size: 0.78125rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.375rem;
+}
+
+.payment-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 420px) {
+  .payment-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pay-radio-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5625rem 0.6875rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.pay-radio-label:has(:checked) {
+  border-color: var(--primary);
+  background-color: var(--primary-tint);
+}
+
+.pay-radio-label input[type='radio'] {
+  accent-color: var(--primary);
+}
+
+.pay-option-title {
+  font-size: 0.78125rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pay-option-desc {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.summary-box {
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 0.78125rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--text);
+  padding-top: 0.375rem;
+  margin-top: 0.375rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn-primary-full {
+  width: 100%;
+  height: 2.625rem;
+  padding: 0 1rem;
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary-full:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.btn-primary-full:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary-full {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   Payment Flows & Status Views
+   ============================================================================ */
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--amber-soft);
+  border: 1px solid var(--amber-border);
+}
+
+.status-banner.completed {
+  background-color: var(--success-soft);
+  border-color: var(--success-border);
+}
+
+.status-banner.demo-done {
+  background-color: var(--primary-tint);
+  border-color: var(--primary-border);
+}
+
+.status-banner-icon {
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 999px;
+  background-color: var(--amber);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.status-banner.completed .status-banner-icon {
+  background-color: var(--success);
+}
+
+.status-banner.demo-done .status-banner-icon {
+  background-color: var(--primary);
+}
+
+.status-banner-title {
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.status-banner-sub {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.table-verify-box {
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--dark-accent);
+  background-color: var(--surface);
+  text-align: center;
+}
+
+.table-verify-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+}
+
+.table-verify-number {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text);
+  margin: 0.125rem 0;
+}
+
+.table-verify-text {
+  font-size: 0.75rem;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.cashier-instruction-box {
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--primary-tint);
+  border: 1px solid var(--primary-border);
+  font-size: 0.75rem;
+  color: var(--warning-text);
+  line-height: 1.45;
+}
+
+.order-receipt-card {
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  font-size: 0.75rem;
+}
+
+.receipt-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: 0.375rem;
+}
+
+.receipt-line span:first-child {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.receipt-line strong {
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.receipt-line--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.125rem;
+}
+
+.receipt-line--stack strong {
+  text-align: left;
+}
+
+.receipt-line--total {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.receipt-line--total strong {
+  font-size: 0.875rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.status-pill.unpaid {
+  background-color: var(--amber-soft);
+  border: 1px solid var(--amber-border);
+  color: var(--amber-text);
+}
+
+.status-pill.paid {
+  background-color: var(--success-soft);
+  border: 1px solid var(--success-border);
+  color: var(--success);
+}
+
+.status-pill.demo {
+  background-color: var(--primary-tint);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
+}
+
+.qris-demo-panel {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  text-align: center;
+}
+
+.demo-warning-banner {
+  padding: 0.5625rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--amber-soft);
+  border: 1px solid var(--amber-border);
+  color: var(--amber-text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-align: left;
+  line-height: 1.4;
+  margin-bottom: 0.625rem;
+}
+
+.demo-amount-hero {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text);
+  margin: 0.125rem 0 0.5rem;
+}
+
+.qris-canvas-frame {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.5625rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin: 0 auto 0.5rem;
+}
+
+#webQrisCanvas {
+  display: flex;
+  justify-content: center;
+}
+
+#webQrisCanvas canvas,
+#webQrisCanvas img {
+  max-width: 100%;
+  height: auto;
+}
+
+.demo-payload-tag {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 0.625rem;
+}
+
+.demo-processing-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   Toast Notification
+   ============================================================================ */
+.toast {
+  position: fixed;
+  top: calc(var(--safe-top) + 3.625rem);
+  left: 50%;
+  transform: translate(-50%, calc(-100% - 1rem));
+  z-index: 60;
+  width: max-content;
+  max-width: calc(100% - var(--gutter-l) - var(--gutter-r));
+  padding: 0.5625rem 0.875rem;
+  border-radius: var(--radius-md);
+  background-color: var(--dark-accent);
+  color: #ffffff;
+  font-size: 0.78125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.toast.show {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .floating-cart-bar,
+  .toast {
+    transition-duration: 0.01ms;
+  }
+}
+
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l1.5-5h15L21 9" />
+            <path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" />
+            <path d="M5 12v8h14v-8" />
+            <path d="M9 20v-5h6v5" />
+          </svg>
+        </div>
+        <div class="brand-meta">
+          <h1 class="brand-title" id="restoNameDisplay">RestoKasir</h1>
+          <p class="brand-sub" id="noticeTableTitle">Pemesanan Menu Meja</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="btn-check-order" id="btnCheckOrder" hidden aria-label="Cek status pesanan meja">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          <span>Cek Pesanan</span>
+          <span class="check-order-dot" id="checkOrderDot" hidden></span>
+        </button>
+        <span class="table-pill" id="tableBadge" hidden aria-label="Nomor meja terkunci dari QR">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span id="tableBadgeText">Meja 01</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Layar Pemberitahuan Apabila QR Meja Tidak Valid -->
+    <section class="invalid-qr-card" id="invalidQrView" hidden aria-live="polite">
+      <div class="invalid-qr-icon" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+          <path d="M14 14h6v6h-6z" />
+          <path d="M3 3l18 18" />
+        </svg>
+      </div>
+      <span class="invalid-qr-badge">Verifikasi QR Meja</span>
+      <h2 class="invalid-qr-title">QR Code Meja Tidak Valid</h2>
+      <p class="invalid-qr-desc" id="invalidQrMessage">
+        QR Code meja tidak valid. Silakan pindai kembali QR Code yang tersedia di meja Anda.
+      </p>
+    </section>
+
+    <!-- Konten Pemesanan (Tampil Hanya Bila QR Meja Terverifikasi) -->
+    <div id="orderingContent" hidden>
+      <button type="button" class="active-order-bar" id="activeOrderBar" hidden aria-label="Lihat status pesanan yang sudah dikirim ke kasir">
+        <div class="active-order-left">
+          <span class="active-order-dot" aria-hidden="true"></span>
+          <div class="active-order-meta">
+            <div class="active-order-title" id="activeOrderTitle">Pesanan Terkirim ke Kasir</div>
+            <div class="active-order-sub" id="activeOrderSub">Ketuk untuk melihat status konfirmasi kasir</div>
+          </div>
+        </div>
+        <span class="active-order-cta" id="activeOrderCta">Cek Status</span>
+      </button>
+
+      <section class="controls-bar" aria-label="Pencarian dan kategori menu">
+        <search>
+          <form class="search-form" id="searchForm" action="#" method="GET">
+            <div class="search-wrap">
+              <label for="searchInput" class="visually-hidden">Cari menu makanan atau minuman</label>
+              <span class="search-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </span>
+              <input
+                type="search"
+                id="searchInput"
+                name="q"
+                class="search-input"
+                placeholder="Cari menu makanan atau minuman..."
+                autocorrect="off"
+                autocapitalize="none"
+                spellcheck="false"
+                autocomplete="off"
+              />
+            </div>
+          </form>
+        </search>
+
+        <div class="category-tabs" id="categoryTabs">
+          <button type="button" class="cat-tab active" data-cat="Semua">Semua</button>
+          <button type="button" class="cat-tab" data-cat="Makanan Utama">Makanan Utama</button>
+          <button type="button" class="cat-tab" data-cat="Snack &amp; Camilan">Snack &amp; Camilan</button>
+          <button type="button" class="cat-tab" data-cat="Minuman">Minuman</button>
+          <button type="button" class="cat-tab" data-cat="Dessert">Dessert</button>
+          <button type="button" class="cat-tab" data-cat="Paket Spesial">Paket Spesial</button>
+        </div>
+      </section>
+
+      <section aria-live="polite">
+        <div id="loadingState" class="loading-state">
+          <progress aria-label="Memuat daftar menu" class="loading-spinner"></progress>
+          <span>Memuat daftar menu...</span>
+        </div>
+
+        <div id="menuGrid" class="menu-grid" hidden></div>
+
+        <div id="emptyState" class="empty-state" hidden>
+          <h3>Menu belum tersedia</h3>
+          <p id="emptyDesc">Belum ada menu yang sesuai dengan pencarian atau stok sedang kosong.</p>
+          <button type="button" class="retry-btn" id="btnRetryMenu">Muat Ulang Menu</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="floating-cart-bar" id="floatingCartBar" aria-live="polite">
+    <div class="cart-bar-left">
+      <div class="cart-count-pill tabular" id="cartCountPill">0 item</div>
+      <div class="cart-bar-meta">
+        <div class="cart-bar-label" id="cartBarTableInfo">Meja 01</div>
+        <div class="cart-bar-total tabular" id="cartBarTotal">Rp 0</div>
+      </div>
+    </div>
+    <button type="button" class="btn-checkout-bar" id="btnOpenCart">
+      Periksa Pesanan
+    </button>
+  </div>
+
+  <!-- Dialog Detail Produk -->
+  <dialog id="productDetailModal" class="app-dialog" closedby="any" aria-labelledby="detailDialogTitle">
+    <div class="modal-header">
+      <h2 class="modal-title" id="detailDialogTitle">Detail Menu</h2>
+      <button type="button" class="modal-close" id="btnCloseDetail" aria-label="Tutup detail menu">
+        &times;
+      </button>
+    </div>
+
+    <div class="modal-body" id="detailModalBody"></div>
+
+    <div class="modal-footer" id="detailModalFooter"></div>
+  </dialog>
+
+  <!-- Dialog Keranjang & Checkout -->
+  <dialog id="cartModal" class="app-dialog" closedby="any" aria-labelledby="cartDialogTitle">
+    <div class="modal-header">
+      <h2 class="modal-title" id="cartDialogTitle">Konfirmasi Pesanan</h2>
+      <button type="button" class="modal-close" id="btnCloseCart" aria-label="Tutup keranjang">
+        &times;
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div id="cartItemsContainer"></div>
+
+      <div class="locked-table-card" aria-label="Nomor meja terkunci dari QR">
+        <div>
+          <div class="locked-table-label">Nomor Meja</div>
+          <div class="locked-table-value" id="modalLockedTableText">Meja 01</div>
+        </div>
+        <span class="locked-table-tag">Terkunci dari QR</span>
+      </div>
+
+      <form id="checkoutForm" method="POST" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="customerNameInput">
+            Nama Pemesan <span aria-hidden="true">*</span>
+          </label>
+          <span id="customerNameHint" class="form-hint">Digunakan kasir untuk memanggil atau memverifikasi pesanan meja Anda.</span>
+          <input
+            type="text"
+            id="customerNameInput"
+            name="customer_name"
+            class="form-input"
+            placeholder="Contoh: Budi"
+            autocomplete="name"
+            required
+            aria-describedby="customerNameHint"
+            data-error="customerNameError"
+            enterkeyhint="next"
+          />
+          <div id="customerNameError" class="field-error">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>Error: Nama pemesan wajib diisi sebelum mengirim pesanan.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="orderNotesInput">Catatan Tambahan (Opsional)</label>
+          <input
+            type="text"
+            id="orderNotesInput"
+            name="order_notes"
+            class="form-input"
+            placeholder="Contoh: Tanpa pedas, es dipisah"
+            enterkeyhint="done"
+          />
+        </div>
+
+        <fieldset class="payment-fieldset">
+          <legend>Pilih Metode Pembayaran</legend>
+          <div class="payment-options">
+            <label class="pay-radio-label">
+              <span class="pay-option-title">
+                <input type="radio" name="paymentMethod" value="CASHIER" checked />
+                Bayar Melalui Kasir
+              </span>
+              <span class="pay-option-desc">Bayar langsung di meja kasir</span>
+            </label>
+
+            <label class="pay-radio-label">
+              <span class="pay-option-title">
+                <input type="radio" name="paymentMethod" value="QRIS_DEMO" />
+                QRIS (Mode Demo)
+              </span>
+              <span class="pay-option-desc">Simulasi QR dummy payload BAYAR</span>
+            </label>
+          </div>
+        </fieldset>
+      </form>
+
+      <div class="summary-box">
+        <div class="summary-line">
+          <span>Subtotal Menu</span>
+          <span class="tabular" id="modalSubtotal">Rp 0</span>
+        </div>
+        <div class="summary-line">
+          <span>Biaya Layanan (5%)</span>
+          <span class="tabular" id="modalService">Rp 0</span>
+        </div>
+        <div class="summary-total">
+          <span>Total Pembayaran</span>
+          <span class="tabular" id="modalTotal">Rp 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="submit" form="checkoutForm" class="btn-primary-full" id="btnSubmitOrder">
+        Buat Pesanan
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Dialog Cek Pesanan & Status Pengiriman ke Kasir -->
+  <dialog id="orderFlowModal" class="app-dialog" closedby="any" aria-labelledby="orderFlowDialogTitle">
+    <div class="modal-header">
+      <h2 class="modal-title" id="orderFlowDialogTitle">Cek Status Pesanan</h2>
+      <button type="button" class="modal-close" id="btnCloseOrderFlow" aria-label="Tutup jendela">
+        &times;
+      </button>
+    </div>
+
+    <div class="modal-body modal-body--stack">
+      <div id="emptyOrderCheckView" class="empty-order-check" hidden>
+        <div class="empty-order-check-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="9" y1="13" x2="15" y2="13" />
+            <line x1="9" y1="17" x2="13" y2="17" />
+          </svg>
+        </div>
+        <h3>Belum Ada Pesanan Terkirim</h3>
+        <p id="emptyOrderCheckDesc">
+          Belum ada pesanan aktif dari meja ini yang dikirim ke kasir. Pilih menu lalu tekan <strong>Buat Pesanan</strong> untuk mengirim pesanan ke kasir.
+        </p>
+      </div>
+
+      <div id="activeOrderFlowWrap" class="modal-body--stack">
+        <div class="kasir-steps" aria-label="Tahap pengiriman pesanan ke kasir">
+          <div class="kasir-step done" id="stepSentToCashier">
+            <span class="kasir-step-badge" aria-hidden="true">&#10003;</span>
+            <div>
+              <div class="kasir-step-title">1. Terkirim ke Kasir</div>
+              <div class="kasir-step-desc" id="stepSentDesc">Sudah masuk di kasir</div>
+            </div>
+          </div>
+          <div class="kasir-step pending" id="stepCashierConfirm">
+            <span class="kasir-step-badge" id="stepConfirmBadge" aria-hidden="true">2</span>
+            <div>
+              <div class="kasir-step-title" id="stepConfirmTitle">2. Konfirmasi Kasir</div>
+              <div class="kasir-step-desc" id="stepConfirmDesc">Menunggu pembayaran</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-banner" id="orderStatusBanner">
+          <div class="status-banner-icon" id="orderStatusIcon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div>
+            <p class="status-banner-title" id="orderStatusTitle">Terkirim ke Kasir — Menunggu Pembayaran</p>
+            <p class="status-banner-sub" id="orderStatusSub">Status pembayaran: UNPAID</p>
+          </div>
+        </div>
+
+        <div class="table-verify-box">
+          <div class="table-verify-label">Nomor Meja Pelanggan</div>
+          <div class="table-verify-number" id="flowTableNumber">Meja 01</div>
+          <p class="table-verify-text" id="flowInvoiceLine">Nomor Pesanan: -</p>
+        </div>
+
+        <!-- Mode A: Halaman QRIS MODE DEMO -->
+        <div class="qris-demo-panel" id="qrisDemoView" hidden>
+          <div class="demo-warning-banner">
+            <strong>MODE DEMO — Bukan QRIS Merchant Aktif.</strong><br />
+            QR Code berikut hanya simulasi untuk demonstrasi aplikasi. Memindai QR berisi teks <code>BAYAR</code> tidak memproses dana asli. Tekan tombol konfirmasi di bawah untuk menyelesaikan simulasi.
+          </div>
+
+          <div class="locked-table-label">Total Pembayaran Simulasi</div>
+          <div class="demo-amount-hero tabular" id="qrisDemoAmount">Rp 0</div>
+
+          <div id="qrisDemoQrStage">
+            <div class="qris-canvas-frame">
+              <div id="webQrisCanvas"></div>
+            </div>
+            <div>
+              <span class="demo-payload-tag">Payload QR: BAYAR</span>
+            </div>
+            <button type="button" class="btn-primary-full" id="btnConfirmDemoQris">
+              Saya Sudah Membayar
+            </button>
+          </div>
+
+          <div class="demo-processing-box" id="qrisDemoLoadingStage" hidden>
+            <progress aria-label="Memproses konfirmasi pembayaran demo" class="loading-spinner loading-spinner--sm"></progress>
+            <span>Memproses simulasi pembayaran...</span>
+          </div>
+        </div>
+
+        <!-- Mode B: Instruksi Pembayaran Melalui Kasir -->
+        <div class="cashier-instruction-box" id="cashierInstructionBox" hidden>
+          <strong>Pesanan Sudah Masuk di Kasir Restoran</strong><br />
+          Tunjukkan nomor meja dan nomor pesanan ini kepada kasir untuk melakukan pembayaran. Status di halaman ini akan otomatis berubah menjadi <strong>PAID (Selesai)</strong> setelah kasir mengonfirmasi.
+        </div>
+
+        <div class="order-receipt-card" id="flowOrderDetails"></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="modal-footer-row">
+        <button type="button" class="btn-secondary-full" id="btnRefreshOrderStatus" hidden>
+          Perbarui Status
+        </button>
+        <button type="button" class="btn-secondary-full" id="btnBackToMenu">
+          Kembali ke Menu
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toastEl" role="status" aria-live="polite"></div>
+
+  <script>
+/* ============================================================================
+   RestoKasir Customer Self-Order Application
+   - Automatic Table Identification (?table=04) & Backend Validation
+   - Locked Table Number (No Manual Table Switching)
+   - Dual Payment Modes: QRIS (MODE DEMO) & Bayar Melalui Kasir (Realtime)
+   ============================================================================ */
+
+const SUPABASE_URL = 'https://uinumtttwkwlurvqvidh.supabase.co';
+const SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpbnVtdHR0d2t3bHVydnF2aWRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTUxNTcsImV4cCI6MjEwMDI3MTE1N30.eSfjbxge6LA8fIqP9Cnepld7s4PgQgh_Eqi3O58DI1M';
+
+const MAX_DEFAULT_TABLES = 20;
+const PREVIEW_DEFAULT_TABLE = 4;
+const PREVIEW_DEFAULT_RESTO = 'a36bf20d-4060-4f78-babe-6202d8f8705d';
+
+// Identitas meja terkunci privat agar tidak bisa diubah dari UI atau konsol
+let lockedTableNumber = null;
+let tableValidated = false;
+let supabaseClient = null;
+let extendedSchemaSupported = null;
+
+const state = {
+  restoId: '',
+  restoName: 'RestoKasir',
+  products: [],
+  cart: {},
+  selectedCategory: 'Semua',
+  searchQuery: '',
+  lastOrder: null,
+  statusPollTimer: null,
+  realtimeChannel: null,
+  activeDetailProductId: null,
+};
+
+Object.defineProperty(state, 'tableNumber', {
+  enumerable: true,
+  configurable: false,
+  get() {
+    return lockedTableNumber;
+  },
+});
+
+function getSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false },
+    });
+  }
+  return supabaseClient;
+}
+
+function apiHeaders(extra = {}) {
+  return {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+    'Content-Type': 'application/json',
+    ...extra,
+  };
+}
+
+function escapeHtml(text) {
+  return String(text == null ? '' : text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatRupiah(num) {
+  const n = Math.round(Number(num) || 0);
+  return 'Rp ' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function formatTableLabel(tableNum) {
+  const padded = String(tableNum).padStart(2, '0');
+  return 'Meja ' + padded;
+}
+
+function formatOrderTime(isoStr) {
+  try {
+    const d = isoStr ? new Date(isoStr) : new Date();
+    return d.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch (e) {
+    return '-';
+  }
+}
+
+// ============================================================================
+// Parsing & Validasi Nomor Meja Otomatis dari Parameter URL QR Code
+// ============================================================================
+function parseStrictTableFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  let rawTable = (params.get('table') || '').trim();
+  let restoParam = (params.get('resto') || '').trim();
+  const nameParam = (params.get('resto_name') || '').trim();
+
+  // Fallback otomatis ke Meja 04 bila dibuka di dalam iframe pratinjau tanpa query string
+  const isEmbeddedPreview =
+    !window.location.search &&
+    (window.self !== window.top ||
+      window.location.protocol === 'blob:' ||
+      window.location.protocol === 'about:');
+
+  if (isEmbeddedPreview && !rawTable) {
+    rawTable = String(PREVIEW_DEFAULT_TABLE).padStart(2, '0');
+    if (!restoParam) restoParam = PREVIEW_DEFAULT_RESTO;
+  }
+
+  if (!/^\d+$/.test(rawTable)) {
+    return { valid: false, tableNumber: null, restoParam, nameParam };
+  }
+
+  const parsed = parseInt(rawTable, 10);
+  if (Number.isNaN(parsed) || parsed < 1) {
+    return { valid: false, tableNumber: null, restoParam, nameParam };
+  }
+
+  return { valid: true, tableNumber: parsed, restoParam, nameParam };
+}
+
+function applyLockedTableLabels(tableNum) {
+  const label = formatTableLabel(tableNum);
+  const badge = document.getElementById('tableBadge');
+  const badgeText = document.getElementById('tableBadgeText');
+  const noticeTitle = document.getElementById('noticeTableTitle');
+  const cartBarTable = document.getElementById('cartBarTableInfo');
+  const modalTable = document.getElementById('modalLockedTableText');
+
+  if (badgeText) {
+    badgeText.textContent = label;
+  } else if (badge) {
+    badge.textContent = label;
+  }
+  if (badge) {
+    badge.hidden = false;
+  }
+  const btnCheck = document.getElementById('btnCheckOrder');
+  if (btnCheck) {
+    btnCheck.hidden = false;
+  }
+  if (noticeTitle) {
+    noticeTitle.textContent = 'Pemesanan otomatis untuk ' + label;
+  }
+  if (cartBarTable) cartBarTable.textContent = label;
+  if (modalTable) modalTable.textContent = label;
+  document.title = 'Menu ' + label + ' — ' + state.restoName;
+}
+
+function showInvalidQrScreen(customMessage) {
+  tableValidated = false;
+  lockedTableNumber = null;
+
+  const badge = document.getElementById('tableBadge');
+  const orderingContent = document.getElementById('orderingContent');
+  const invalidView = document.getElementById('invalidQrView');
+  const invalidMsg = document.getElementById('invalidQrMessage');
+  const cartBar = document.getElementById('floatingCartBar');
+
+  const btnCheck = document.getElementById('btnCheckOrder');
+  if (btnCheck) btnCheck.hidden = true;
+  if (badge) badge.hidden = true;
+  if (orderingContent) orderingContent.hidden = true;
+  if (cartBar) cartBar.classList.remove('visible');
+
+  if (invalidMsg) {
+    invalidMsg.textContent =
+      customMessage ||
+      'QR Code meja tidak valid. Silakan pindai kembali QR Code yang tersedia di meja Anda.';
+  }
+  if (invalidView) invalidView.hidden = false;
+  document.title = 'QR Code Meja Tidak Valid — RestoKasir';
+}
+
+async function verifyTableInSupabase(restoId, tableNum) {
+  if (!tableNum || tableNum < 1) return false;
+  if (!restoId) return tableNum >= 1 && tableNum <= MAX_DEFAULT_TABLES;
+
+  try {
+    const res = await fetch(
+      SUPABASE_URL +
+        '/rest/v1/restaurant_tables?resto_id=eq.' +
+        encodeURIComponent(restoId) +
+        '&select=id,table_number,is_active',
+      { headers: apiHeaders() }
+    );
+
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0) {
+        const matched = rows.find((r) => Number(r.table_number) === Number(tableNum));
+        if (!matched) return false;
+        return matched.is_active !== false;
+      }
+      // Jika restaurant_tables belum diisi untuk resto ini, validasi nomor meja standar 1..20
+      return tableNum >= 1 && tableNum <= MAX_DEFAULT_TABLES;
+    }
+
+    if (res.status === 404 || res.status === 401 || res.status === 403) {
+      return tableNum >= 1 && tableNum <= MAX_DEFAULT_TABLES;
+    }
+
+    return tableNum >= 1 && tableNum <= MAX_DEFAULT_TABLES;
+  } catch (e) {
+    console.error('Gagal memverifikasi nomor meja di Supabase:', e);
+    return tableNum >= 1 && tableNum <= MAX_DEFAULT_TABLES;
+  }
+}
+
+async function detectExtendedOrderSchema() {
+  if (extendedSchemaSupported !== null) return extendedSchemaSupported;
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/orders?select=id,payment_status,order_source&limit=1',
+      { headers: apiHeaders() }
+    );
+    extendedSchemaSupported = res.ok;
+  } catch (e) {
+    extendedSchemaSupported = false;
+  }
+  return extendedSchemaSupported;
+}
+
+// ============================================================================
+// Placeholder SVG Berdasarkan Kategori
+// ============================================================================
+function getCategorySvg(cat) {
+  const c = (cat || '').toLowerCase();
+  if (c.includes('minuman')) {
+    return (
+      '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M6 8h12l-1.5 11a2 2 0 0 1-2 1.7H9.5a2 2 0 0 1-2-1.7L6 8z" />' +
+      '<path d="M5 8h14" />' +
+      '<path d="M12 8V4l3-1" />' +
+      '</svg>'
+    );
+  }
+  if (c.includes('dessert')) {
+    return (
+      '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 13h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z" />' +
+      '<path d="M4 13c0-3 3.5-5 8-5s8 2 8 5" />' +
+      '<circle cx="12" cy="5.5" r="1.5" />' +
+      '</svg>'
+    );
+  }
+  return (
+    '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+    '<circle cx="12" cy="12" r="8" />' +
+    '<circle cx="12" cy="12" r="4" />' +
+    '<path d="M3 12h1M20 12h1" />' +
+    '</svg>'
+  );
+}
+
+// ============================================================================
+// Accessible Form Validation (:user-invalid + ARIA live sync)
+// ============================================================================
+function linkInputError(el, shown) {
+  const errId = el.dataset.error;
+  if (!errId) return;
+  const ids = (el.getAttribute('aria-describedby') || '')
+    .split(/\s+/)
+    .filter((id) => id && id !== errId);
+  if (shown) ids.push(errId);
+  if (ids.length) {
+    el.setAttribute('aria-describedby', ids.join(' '));
+  } else {
+    el.removeAttribute('aria-describedby');
+  }
+}
+
+function updateFieldValidationState(el, showErrorIfInvalid = false) {
+  if (!el || !el.validity) return true;
+  const val = (el.value || '').trim();
+  if (el.id === 'customerNameInput') {
+    el.setCustomValidity(val ? '' : 'Nama pemesan wajib diisi.');
+  }
+  const isValid = el.validity.valid;
+  if (!isValid && showErrorIfInvalid) {
+    el.classList.add('user-invalid-fallback');
+    el.setAttribute('aria-invalid', 'true');
+    linkInputError(el, true);
+  } else if (isValid) {
+    el.classList.remove('user-invalid-fallback');
+    el.setAttribute('aria-invalid', 'false');
+    linkInputError(el, false);
+  }
+  return isValid;
+}
+
+// ============================================================================
+// Initialization & Data Fetching
+// ============================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  bindEvents();
+  bootstrapOrderPage();
+});
+
+async function bootstrapOrderPage() {
+  const parsed = parseStrictTableFromUrl();
+  if (!parsed.valid) {
+    showInvalidQrScreen(
+      'QR Code meja tidak valid. Silakan pindai kembali QR Code yang tersedia di meja Anda.'
+    );
+    return;
+  }
+
+  state.restoId = parsed.restoParam;
+  if (parsed.nameParam) {
+    state.restoName = parsed.nameParam;
+  }
+
+  const invalidView = document.getElementById('invalidQrView');
+  const orderingContent = document.getElementById('orderingContent');
+  const loadingState = document.getElementById('loadingState');
+  const menuGrid = document.getElementById('menuGrid');
+  const emptyState = document.getElementById('emptyState');
+
+  if (invalidView) invalidView.hidden = true;
+  if (orderingContent) orderingContent.hidden = false;
+  if (loadingState) loadingState.hidden = false;
+  if (menuGrid) menuGrid.hidden = true;
+  if (emptyState) emptyState.hidden = true;
+
+  try {
+    const restoEndpoint = state.restoId
+      ? SUPABASE_URL +
+        '/rest/v1/restaurants?id=eq.' +
+        encodeURIComponent(state.restoId) +
+        '&select=id,name'
+      : SUPABASE_URL + '/rest/v1/restaurants?select=id,name&limit=1';
+
+    const restoRes = await fetch(restoEndpoint, { headers: apiHeaders() });
+    if (restoRes.ok) {
+      const restoList = await restoRes.json();
+      if (Array.isArray(restoList) && restoList.length > 0) {
+        state.restoId = restoList[0].id || state.restoId;
+        state.restoName = restoList[0].name || state.restoName;
+      } else if (!state.restoId) {
+        showInvalidQrScreen(
+          'Data restoran pada QR Code tidak ditemukan. Silakan pindai ulang QR Code di meja Anda.'
+        );
+        return;
+      }
+    } else if (!state.restoId) {
+      throw new Error('Gagal memuat data restoran (HTTP ' + restoRes.status + ')');
+    }
+
+    document.getElementById('restoNameDisplay').textContent = state.restoName;
+
+    const isRegisteredTable = await verifyTableInSupabase(
+      state.restoId,
+      parsed.tableNumber
+    );
+    if (!isRegisteredTable) {
+      showInvalidQrScreen(
+        'QR Code meja tidak valid. Silakan pindai kembali QR Code yang tersedia di meja Anda.'
+      );
+      return;
+    }
+
+    lockedTableNumber = parsed.tableNumber;
+    tableValidated = true;
+    applyLockedTableLabels(lockedTableNumber);
+
+    restoreLastOrderFromStorage();
+    await Promise.all([
+      fetchMenuProducts(),
+      detectExtendedOrderSchema(),
+      fetchLatestTableOrderFromServer(),
+    ]);
+  } catch (err) {
+    console.error('Bootstrap error:', err);
+    lockedTableNumber = parsed.tableNumber;
+    tableValidated = true;
+    applyLockedTableLabels(lockedTableNumber);
+    if (loadingState) loadingState.hidden = true;
+    document.getElementById('emptyDesc').textContent =
+      'Gagal memuat data dari server. Periksa koneksi internet Anda lalu coba lagi.';
+    if (emptyState) emptyState.hidden = false;
+  }
+}
+
+function sortProductsNewestFirst(list) {
+  return [...list].sort((a, b) => {
+    const aTime = Date.parse(a && a.created_at ? a.created_at : '');
+    const bTime = Date.parse(b && b.created_at ? b.created_at : '');
+    const validA = Number.isFinite(aTime);
+    const validB = Number.isFinite(bTime);
+    if (validA && validB && bTime !== aTime) {
+      return bTime - aTime;
+    }
+    if (validB && !validA) return 1;
+    if (validA && !validB) return -1;
+
+    const aId = Number(a && a.id);
+    const bId = Number(b && b.id);
+    if (Number.isFinite(aId) && Number.isFinite(bId) && bId !== aId) {
+      return bId - aId;
+    }
+    return String((a && a.name) || '').localeCompare(String((b && b.name) || ''), 'id');
+  });
+}
+
+async function fetchMenuProducts() {
+  const loadingState = document.getElementById('loadingState');
+  const menuGrid = document.getElementById('menuGrid');
+  const emptyState = document.getElementById('emptyState');
+
+  if (loadingState) loadingState.hidden = false;
+  if (menuGrid) menuGrid.hidden = true;
+  if (emptyState) emptyState.hidden = true;
+
+  try {
+    let prodUrl = SUPABASE_URL + '/rest/v1/products?select=*&order=created_at.desc,name.asc';
+    if (state.restoId) {
+      prodUrl += '&resto_id=eq.' + encodeURIComponent(state.restoId);
+    }
+
+    const prodRes = await fetch(prodUrl, { headers: apiHeaders() });
+    if (!prodRes.ok) {
+      throw new Error('HTTP ' + prodRes.status);
+    }
+    const products = await prodRes.json();
+    const validProducts = (Array.isArray(products) ? products : []).filter(
+      (p) => p && p.id && p.name && String(p.name).trim() && Number(p.price) >= 0
+    );
+    state.products = sortProductsNewestFirst(validProducts);
+
+    if (loadingState) loadingState.hidden = true;
+    renderMenuGrid();
+
+    if (state.activeDetailProductId) {
+      renderProductDetailDialog(state.activeDetailProductId);
+    }
+  } catch (err) {
+    console.error('Gagal memuat menu:', err);
+    if (loadingState) loadingState.hidden = true;
+    document.getElementById('emptyDesc').textContent =
+      'Gagal memuat daftar menu dari server. Silakan coba lagi.';
+    if (emptyState) emptyState.hidden = false;
+  }
+}
+
+function bindEvents() {
+  const searchForm = document.getElementById('searchForm');
+  if (searchForm) {
+    searchForm.addEventListener('submit', (e) => e.preventDefault());
+  }
+
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      state.searchQuery = e.target.value.toLowerCase().trim();
+      renderMenuGrid();
+    });
+  }
+
+  const tabs = document.getElementById('categoryTabs');
+  if (tabs) {
+    tabs.addEventListener('click', (e) => {
+      const btn = e.target.closest('.cat-tab');
+      if (!btn) return;
+      document
+        .querySelectorAll('.cat-tab')
+        .forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      state.selectedCategory = btn.dataset.cat || 'Semua';
+      renderMenuGrid();
+    });
+  }
+
+  const menuGrid = document.getElementById('menuGrid');
+  if (menuGrid) {
+    menuGrid.addEventListener('click', (e) => {
+      const stepBtn = e.target.closest('[data-cart-action]');
+      if (stepBtn) {
+        const pid = stepBtn.dataset.productId;
+        const delta = stepBtn.dataset.cartAction === 'inc' ? 1 : -1;
+        updateCartQty(pid, delta, true);
+        return;
+      }
+
+      const detailBtn = e.target.closest('[data-detail-id]');
+      if (detailBtn) {
+        openProductDetailModal(detailBtn.dataset.detailId);
+      }
+    });
+  }
+
+  const cartContainer = document.getElementById('cartItemsContainer');
+  if (cartContainer) {
+    cartContainer.addEventListener('click', (e) => {
+      const stepBtn = e.target.closest('[data-cart-action]');
+      if (!stepBtn) return;
+      const pid = stepBtn.dataset.productId;
+      const delta = stepBtn.dataset.cartAction === 'inc' ? 1 : -1;
+      updateCartQty(pid, delta, false);
+    });
+  }
+
+  const detailFooter = document.getElementById('detailModalFooter');
+  if (detailFooter) {
+    detailFooter.addEventListener('click', (e) => {
+      const stepBtn = e.target.closest('[data-cart-action]');
+      if (!stepBtn) return;
+      const pid = stepBtn.dataset.productId;
+      const delta = stepBtn.dataset.cartAction === 'inc' ? 1 : -1;
+      updateCartQty(pid, delta, true);
+    });
+  }
+
+  const checkoutForm = document.getElementById('checkoutForm');
+  const customerNameInput = document.getElementById('customerNameInput');
+  if (customerNameInput) {
+    customerNameInput.setAttribute('aria-invalid', 'false');
+    customerNameInput.addEventListener('input', () => {
+      if (customerNameInput.value.trim()) {
+        updateFieldValidationState(customerNameInput, false);
+      }
+    });
+    customerNameInput.addEventListener('blur', () => {
+      updateFieldValidationState(customerNameInput, true);
+    });
+  }
+
+  if (checkoutForm) {
+    checkoutForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (customerNameInput) {
+        const isValid = updateFieldValidationState(customerNameInput, true);
+        if (!isValid) {
+          customerNameInput.focus();
+          return;
+        }
+      }
+      submitOrder();
+    });
+  }
+
+  document.getElementById('btnOpenCart')?.addEventListener('click', openCartModal);
+  document.getElementById('btnCloseCart')?.addEventListener('click', closeCartModal);
+  document.getElementById('btnCloseDetail')?.addEventListener('click', closeProductDetailModal);
+  document.getElementById('btnCheckOrder')?.addEventListener('click', handleCheckOrderClick);
+  document.getElementById('activeOrderBar')?.addEventListener('click', handleCheckOrderClick);
+  document.getElementById('btnRefreshOrderStatus')?.addEventListener('click', manualRefreshOrderStatus);
+  document.getElementById('btnCloseOrderFlow')?.addEventListener('click', closeOrderFlowModal);
+  document.getElementById('btnBackToMenu')?.addEventListener('click', closeOrderFlowModal);
+  document.getElementById('btnConfirmDemoQris')?.addEventListener('click', confirmDemoQrisSimulation);
+  document.getElementById('btnRetryMenu')?.addEventListener('click', resetFiltersAndFetch);
+
+  ['cartModal', 'productDetailModal', 'orderFlowModal'].forEach((id) => {
+    const dlg = document.getElementById(id);
+    if (!dlg) return;
+    if (!('closedBy' in dlg)) {
+      dlg.addEventListener('click', (ev) => {
+        if (ev.target === dlg) dlg.close();
+      });
+    }
+    dlg.addEventListener('close', () => {
+      if (id === 'orderFlowModal') stopOrderListeners();
+      if (id === 'productDetailModal') state.activeDetailProductId = null;
+    });
+  });
+}
+
+function resetFiltersAndFetch() {
+  state.selectedCategory = 'Semua';
+  state.searchQuery = '';
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.value = '';
+  document.querySelectorAll('.cat-tab').forEach((b) => {
+    b.classList.toggle('active', b.dataset.cat === 'Semua');
+  });
+  fetchMenuProducts();
+}
+
+// ============================================================================
+// Menu Grid, Product Detail Modal & Cart Actions
+// ============================================================================
+function buildStepperOrAddHtml(product, inCart) {
+  const stock = Number(product.stock) || 0;
+  const outOfStock = stock <= 0;
+  const safeId = escapeHtml(product.id);
+
+  if (inCart > 0) {
+    return (
+      '<div class="qty-stepper">' +
+      '<button type="button" class="qty-btn" data-cart-action="dec" data-product-id="' +
+      safeId +
+      '" aria-label="Kurangi jumlah ' +
+      escapeHtml(product.name) +
+      '">-</button>' +
+      '<span class="qty-count tabular">' +
+      inCart +
+      '</span>' +
+      '<button type="button" class="qty-btn plus" data-cart-action="inc" data-product-id="' +
+      safeId +
+      '" aria-label="Tambah jumlah ' +
+      escapeHtml(product.name) +
+      '">+</button>' +
+      '</div>'
+    );
+  }
+
+  return (
+    '<button type="button" class="btn-add" data-cart-action="inc" data-product-id="' +
+    safeId +
+    '" ' +
+    (outOfStock ? 'disabled' : '') +
+    '>' +
+    (outOfStock ? 'Habis' : '+ Tambah') +
+    '</button>'
+  );
+}
+
+function renderMenuGrid() {
+  if (!tableValidated) return;
+  const menuGrid = document.getElementById('menuGrid');
+  const emptyState = document.getElementById('emptyState');
+
+  const filtered = sortProductsNewestFirst(
+    state.products.filter((p) => {
+      if (!p || !p.id || !p.name || !String(p.name).trim()) return false;
+      if (p.is_available === false) return false;
+      const matchCat =
+        state.selectedCategory === 'Semua' ||
+        p.category === state.selectedCategory;
+      const matchSearch =
+        !state.searchQuery ||
+        (p.name || '').toLowerCase().includes(state.searchQuery);
+      return matchCat && matchSearch;
+    })
+  );
+
+  if (filtered.length === 0) {
+    menuGrid.dataset.count = '0';
+    menuGrid.hidden = true;
+    document.getElementById('emptyDesc').textContent = state.searchQuery
+      ? 'Tidak ada menu yang cocok dengan kata kunci "' + state.searchQuery + '".'
+      : 'Belum ada menu tersedia saat ini.';
+    emptyState.hidden = false;
+    return;
+  }
+
+  emptyState.hidden = true;
+  menuGrid.hidden = false;
+  menuGrid.dataset.count = String(filtered.length);
+
+  menuGrid.innerHTML = filtered
+    .map((p) => {
+      const stock = Number(p.stock) || 0;
+      const outOfStock = stock <= 0;
+      const inCart = state.cart[p.id] ? state.cart[p.id].qty : 0;
+      const imgSrc = p.image_url || p.imageUrl || '';
+
+      let stockLabel = 'Tersedia';
+      let stockClass = '';
+      if (outOfStock) {
+        stockLabel = 'Habis';
+        stockClass = 'empty';
+      } else if (stock <= 5) {
+        stockLabel = 'Sisa ' + stock;
+        stockClass = 'low';
+      }
+
+      const placeholderHtml =
+        '<div class="menu-thumb-placeholder" aria-hidden="true">' +
+        getCategorySvg(p.category) +
+        '</div>';
+
+      const imgHtml = imgSrc
+        ? '<img src="' +
+          escapeHtml(imgSrc) +
+          '" alt="' +
+          escapeHtml(p.name) +
+          '" loading="lazy" onerror="this.remove()" />'
+        : '';
+
+      return (
+        '<article class="menu-card ' +
+        (outOfStock ? 'out-of-stock' : '') +
+        '">' +
+        '<button type="button" class="menu-detail-trigger" data-detail-id="' +
+        escapeHtml(p.id) +
+        '" aria-label="Lihat detail ' +
+        escapeHtml(p.name) +
+        '">' +
+        '<div class="menu-thumb">' +
+        placeholderHtml +
+        imgHtml +
+        '<span class="stock-badge ' +
+        stockClass +
+        '">' +
+        stockLabel +
+        '</span>' +
+        '</div>' +
+        '<div class="menu-body">' +
+        '<div class="menu-cat-label">' +
+        escapeHtml(p.category || 'Menu') +
+        '</div>' +
+        '<h3 class="menu-name">' +
+        escapeHtml(p.name) +
+        '</h3>' +
+        '</div>' +
+        '</button>' +
+        '<div class="menu-footer">' +
+        '<span class="menu-price tabular">' +
+        formatRupiah(p.price) +
+        '</span>' +
+        buildStepperOrAddHtml(p, inCart) +
+        '</div>' +
+        '</article>'
+      );
+    })
+    .join('');
+}
+
+function openProductDetailModal(productId) {
+  state.activeDetailProductId = productId;
+  renderProductDetailDialog(productId);
+  const dlg = document.getElementById('productDetailModal');
+  if (dlg && !dlg.open) dlg.showModal();
+}
+
+function closeProductDetailModal() {
+  state.activeDetailProductId = null;
+  const dlg = document.getElementById('productDetailModal');
+  if (dlg && dlg.open) dlg.close();
+}
+
+function renderProductDetailDialog(productId) {
+  const product = state.products.find((p) => String(p.id) === String(productId));
+  if (!product) {
+    closeProductDetailModal();
+    return;
+  }
+
+  const stock = Number(product.stock) || 0;
+  const outOfStock = stock <= 0;
+  const inCart = state.cart[product.id] ? state.cart[product.id].qty : 0;
+  const imgSrc = product.image_url || product.imageUrl || '';
+
+  const placeholderHtml =
+    '<div class="menu-thumb-placeholder" aria-hidden="true">' +
+    getCategorySvg(product.category) +
+    '</div>';
+
+  const imgHtml = imgSrc
+    ? '<img src="' +
+      escapeHtml(imgSrc) +
+      '" alt="' +
+      escapeHtml(product.name) +
+      '" onerror="this.remove()" />'
+    : '';
+
+  const stockText = outOfStock ? 'Stok habis' : 'Tersedia: ' + stock + ' porsi';
+
+  document.getElementById('detailModalBody').innerHTML =
+    '<div class="detail-hero">' +
+    placeholderHtml +
+    imgHtml +
+    '</div>' +
+    '<div class="detail-meta-row">' +
+    '<span class="menu-cat-label">' +
+    escapeHtml(product.category || 'Menu') +
+    '</span>' +
+    '<span class="locked-table-tag">' +
+    escapeHtml(stockText) +
+    '</span>' +
+    '</div>' +
+    '<h3 class="detail-title">' +
+    escapeHtml(product.name) +
+    '</h3>' +
+    '<div class="detail-price tabular">' +
+    formatRupiah(product.price) +
+    '</div>' +
+    '<p class="detail-desc">Pesanan untuk <strong>' +
+    escapeHtml(formatTableLabel(lockedTableNumber)) +
+    '</strong> akan langsung diteruskan ke sistem kasir ' +
+    escapeHtml(state.restoName) +
+    '.</p>';
+
+  const footer = document.getElementById('detailModalFooter');
+  if (inCart > 0) {
+    footer.innerHTML =
+      '<div class="detail-qty-row">' +
+      '<span class="detail-qty-label">Jumlah di keranjang</span>' +
+      buildStepperOrAddHtml(product, inCart) +
+      '</div>';
+  } else {
+    footer.innerHTML =
+      '<button type="button" class="btn-primary-full" data-cart-action="inc" data-product-id="' +
+      escapeHtml(product.id) +
+      '" ' +
+      (outOfStock ? 'disabled' : '') +
+      '>' +
+      (outOfStock ? 'Stok Habis' : 'Tambah ke Keranjang — ' + formatRupiah(product.price)) +
+      '</button>';
+  }
+}
+
+function updateCartQty(productId, delta, notifyAdd = false) {
+  if (!tableValidated || !lockedTableNumber) return;
+
+  const product = state.products.find((p) => String(p.id) === String(productId));
+  if (!product) return;
+
+  const existing = state.cart[productId] || { product, qty: 0 };
+  const nextQty = existing.qty + delta;
+  const maxStock = Number(product.stock) || 0;
+
+  if (nextQty > maxStock) {
+    showToast('Stok tersisa ' + maxStock + ' porsi');
+    return;
+  }
+
+  if (nextQty <= 0) {
+    delete state.cart[productId];
+    showToast(product.name + ' dihapus dari keranjang');
+  } else {
+    state.cart[productId] = { product, qty: nextQty };
+    if (notifyAdd && delta > 0 && existing.qty === 0) {
+      showToast(product.name + ' ditambahkan ke keranjang');
+    }
+  }
+
+  renderMenuGrid();
+  updateFloatingCartBar();
+
+  if (state.activeDetailProductId && String(state.activeDetailProductId) === String(productId)) {
+    renderProductDetailDialog(productId);
+  }
+
+  const cartModal = document.getElementById('cartModal');
+  if (cartModal && cartModal.open) {
+    renderCartModalContent();
+  }
+}
+
+function getCartTotals() {
+  const items = Object.values(state.cart);
+  const count = items.reduce((acc, i) => acc + i.qty, 0);
+  const subtotal = items.reduce(
+    (acc, i) => acc + (Number(i.product.price) || 0) * i.qty,
+    0
+  );
+  const serviceFee = Math.round(subtotal * 0.05);
+  const grandTotal = subtotal + serviceFee;
+  return { items, count, subtotal, serviceFee, grandTotal };
+}
+
+function updateFloatingCartBar() {
+  const bar = document.getElementById('floatingCartBar');
+  const { count, grandTotal } = getCartTotals();
+
+  document.getElementById('cartCountPill').textContent = count + ' item';
+  document.getElementById('cartBarTotal').textContent = formatRupiah(grandTotal);
+  document.getElementById('cartBarTableInfo').textContent = formatTableLabel(lockedTableNumber);
+
+  const isCartVisible = count > 0 && tableValidated;
+  if (isCartVisible) {
+    bar.classList.add('visible');
+  } else {
+    bar.classList.remove('visible');
+  }
+  if (document.body) {
+    document.body.classList.toggle('has-cart', isCartVisible);
+  }
+}
+
+// ============================================================================
+// Checkout Dialog (<dialog>)
+// ============================================================================
+function openCartModal() {
+  if (!tableValidated || !lockedTableNumber) return;
+  const { count } = getCartTotals();
+  if (count === 0) return;
+
+  applyLockedTableLabels(lockedTableNumber);
+  renderCartModalContent();
+  const dlg = document.getElementById('cartModal');
+  if (dlg && !dlg.open) dlg.showModal();
+}
+
+function closeCartModal() {
+  const dlg = document.getElementById('cartModal');
+  if (dlg && dlg.open) dlg.close();
+}
+
+function renderCartModalContent() {
+  const { items, count, subtotal, serviceFee, grandTotal } = getCartTotals();
+  const container = document.getElementById('cartItemsContainer');
+
+  if (count === 0) {
+    closeCartModal();
+    return;
+  }
+
+  container.innerHTML = items
+    .map(({ product, qty }) => {
+      const lineTotal = (Number(product.price) || 0) * qty;
+      const safeId = escapeHtml(product.id);
+      return (
+        '<div class="cart-item-row">' +
+        '<div class="cart-item-info">' +
+        '<div class="cart-item-name">' +
+        escapeHtml(product.name) +
+        '</div>' +
+        '<div class="cart-item-sub tabular">' +
+        qty +
+        ' x ' +
+        formatRupiah(product.price) +
+        ' = <strong>' +
+        formatRupiah(lineTotal) +
+        '</strong></div>' +
+        '</div>' +
+        '<div class="qty-stepper">' +
+        '<button type="button" class="qty-btn" data-cart-action="dec" data-product-id="' +
+        safeId +
+        '" aria-label="Kurangi">-</button>' +
+        '<span class="qty-count tabular">' +
+        qty +
+        '</span>' +
+        '<button type="button" class="qty-btn plus" data-cart-action="inc" data-product-id="' +
+        safeId +
+        '" aria-label="Tambah">+</button>' +
+        '</div>' +
+        '</div>'
+      );
+    })
+    .join('');
+
+  document.getElementById('modalSubtotal').textContent = formatRupiah(subtotal);
+  document.getElementById('modalService').textContent = formatRupiah(serviceFee);
+  document.getElementById('modalTotal').textContent = formatRupiah(grandTotal);
+}
+
+// ============================================================================
+// Submit Order to Supabase -> Menggunakan Harga Server & Tabel `orders`
+// ============================================================================
+async function submitOrder() {
+  const urlCheck = parseStrictTableFromUrl();
+  if (
+    !tableValidated ||
+    !lockedTableNumber ||
+    !urlCheck.valid ||
+    urlCheck.tableNumber !== lockedTableNumber
+  ) {
+    closeCartModal();
+    showInvalidQrScreen(
+      'QR Code meja tidak valid. Silakan pindai kembali QR Code yang tersedia di meja Anda.'
+    );
+    return;
+  }
+
+  const stillRegistered = await verifyTableInSupabase(state.restoId, lockedTableNumber);
+  if (!stillRegistered) {
+    closeCartModal();
+    showInvalidQrScreen(
+      'QR Code meja tidak valid atau meja tidak aktif. Silakan pindai kembali QR Code di meja Anda.'
+    );
+    return;
+  }
+
+  const nameInput = document.getElementById('customerNameInput');
+  const customerName = nameInput ? nameInput.value.trim() : '';
+  if (!customerName) {
+    updateFieldValidationState(nameInput, true);
+    nameInput?.focus();
+    return;
+  }
+
+  const notesInput = document.getElementById('orderNotesInput');
+  const notes = notesInput ? notesInput.value.trim() : '';
+  const selectedPaymentEl = document.querySelector('input[name="paymentMethod"]:checked');
+  const paymentChoice =
+    selectedPaymentEl && selectedPaymentEl.value === 'QRIS_DEMO' ? 'QRIS_DEMO' : 'CASHIER';
+
+  const cartItems = Object.values(state.cart);
+  if (cartItems.length === 0) return;
+
+  const submitBtn = document.getElementById('btnSubmitOrder');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Membuat pesanan...';
+
+  try {
+    let savedSummary = null;
+
+    const rpcRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/submit_qr_order', {
+      method: 'POST',
+      headers: apiHeaders(),
+      body: JSON.stringify({
+        p_resto_id: state.restoId,
+        p_table_number: lockedTableNumber,
+        p_customer_name: customerName,
+        p_notes: notes,
+        p_payment_method: paymentChoice,
+        p_items: cartItems.map((c) => ({
+          product_id: c.product.id,
+          quantity: c.qty,
+        })),
+      }),
+    });
+
+    if (rpcRes.ok) {
+      const rpcData = await rpcRes.json();
+      savedSummary = {
+        id: rpcData.id,
+        invoiceNo: rpcData.invoice_no,
+        tableNumber: lockedTableNumber,
+        customerName,
+        notes,
+        subtotal: rpcData.subtotal,
+        serviceFee: rpcData.service_fee,
+        total: rpcData.total,
+        paymentChoice,
+        paymentMethod: rpcData.payment_method,
+        paymentStatus: rpcData.payment_status || 'unpaid',
+        status: rpcData.status || 'pesanan dibuat',
+        createdAt: rpcData.created_at || new Date().toISOString(),
+        itemsSummary: Array.isArray(rpcData.items_summary)
+          ? rpcData.items_summary
+          : cartItems.map((i) => i.product.name + ' x' + i.qty),
+      };
+    } else if (rpcRes.status === 404) {
+      savedSummary = await submitOrderWithVerifiedServerPrices({
+        cartItems,
+        customerName,
+        notes,
+        paymentChoice,
+      });
+    } else {
+      const errText = await rpcRes.text();
+      throw new Error('Gagal membuat pesanan (' + rpcRes.status + '): ' + errText);
+    }
+
+    saveLastOrder(savedSummary);
+    state.cart = {};
+    if (notesInput) notesInput.value = '';
+    updateFloatingCartBar();
+    closeCartModal();
+    fetchMenuProducts();
+    showToast('Pesanan berhasil dibuat (' + savedSummary.invoiceNo + ')');
+    openOrderFlowModal(savedSummary);
+  } catch (err) {
+    console.error('Submit order error:', err);
+    showToast('Gagal membuat pesanan. Silakan periksa stok atau koneksi Anda.');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Buat Pesanan';
+  }
+}
+
+async function submitOrderWithVerifiedServerPrices({
+  cartItems,
+  customerName,
+  notes,
+  paymentChoice,
+}) {
+  const prodRes = await fetch(
+    SUPABASE_URL +
+      '/rest/v1/products?resto_id=eq.' +
+      encodeURIComponent(state.restoId) +
+      '&select=id,name,price,stock,is_available',
+    { headers: apiHeaders() }
+  );
+  if (!prodRes.ok) {
+    throw new Error('Gagal memverifikasi harga produk (' + prodRes.status + ')');
+  }
+  const serverProducts = await prodRes.json();
+  const productMap = new Map(
+    (Array.isArray(serverProducts) ? serverProducts : []).map((p) => [String(p.id), p])
+  );
+
+  let verifiedSubtotal = 0;
+  const verifiedLines = [];
+
+  for (const item of cartItems) {
+    const dbProd = productMap.get(String(item.product.id));
+    if (!dbProd || dbProd.is_available === false) {
+      throw new Error('Produk ' + item.product.name + ' tidak tersedia.');
+    }
+    const dbStock = Number(dbProd.stock) || 0;
+    if (dbStock < item.qty) {
+      throw new Error('Stok ' + dbProd.name + ' tersisa ' + dbStock);
+    }
+    const unitPrice = Number(dbProd.price) || 0;
+    const lineTotal = unitPrice * item.qty;
+    verifiedSubtotal += lineTotal;
+    verifiedLines.push({
+      product_id: dbProd.id,
+      product_name: dbProd.name,
+      price: unitPrice,
+      quantity: item.qty,
+      subtotal: lineTotal,
+      next_stock: Math.max(0, dbStock - item.qty),
+    });
+  }
+
+  const verifiedServiceFee = Math.round(verifiedSubtotal * 0.05);
+  const verifiedTotal = verifiedSubtotal + verifiedServiceFee;
+
+  const now = new Date();
+  const datePart =
+    String(now.getFullYear()) +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0');
+  const randPart = String(Math.floor(1000 + Math.random() * 9000));
+  const invoiceNo = 'WEB-' + datePart + '-' + randPart;
+
+  const hasExtendedCols = await detectExtendedOrderSchema();
+  const isDemoQris = paymentChoice === 'QRIS_DEMO';
+
+  const baseCustomerTag =
+    formatTableLabel(lockedTableNumber) + ' (' + customerName + ')';
+  let cashierLabel = notes ? baseCustomerTag + ' - Catatan: ' + notes : baseCustomerTag;
+  if (isDemoQris) {
+    cashierLabel += ' [QRIS DEMO]';
+  }
+
+  const paymentMethodValue = hasExtendedCols
+    ? isDemoQris
+      ? 'QRIS_DEMO'
+      : 'CASHIER'
+    : isDemoQris
+      ? 'QRIS DEMO (Simulasi)'
+      : 'Bayar di Kasir (Meja)';
+
+  const orderPayload = {
+    invoice_no: invoiceNo,
+    resto_id: state.restoId,
+    cashier_name: cashierLabel,
+    table_number: lockedTableNumber,
+    subtotal: verifiedSubtotal,
+    service_fee: verifiedServiceFee,
+    total: verifiedTotal,
+    payment_method: paymentMethodValue,
+    status: 'pesanan dibuat',
+  };
+
+  if (hasExtendedCols) {
+    orderPayload.payment_status = 'unpaid';
+    orderPayload.order_source = 'qr';
+  }
+
+  const orderRes = await fetch(SUPABASE_URL + '/rest/v1/orders', {
+    method: 'POST',
+    headers: apiHeaders({ Prefer: 'return=representation' }),
+    body: JSON.stringify(orderPayload),
+  });
+
+  if (!orderRes.ok) {
+    const errBody = await orderRes.text();
+    throw new Error('Gagal menyimpan order (' + orderRes.status + '): ' + errBody);
+  }
+
+  const createdRows = await orderRes.json();
+  const createdOrder = Array.isArray(createdRows) ? createdRows[0] : createdRows;
+  const orderId = createdOrder ? createdOrder.id : '';
+
+  const itemsPayload = verifiedLines.map((line) => ({
+    order_id: orderId,
+    product_id: line.product_id,
+    product_name: line.product_name,
+    price: line.price,
+    quantity: line.quantity,
+    subtotal: line.subtotal,
+  }));
+
+  const itemsRes = await fetch(SUPABASE_URL + '/rest/v1/order_items', {
+    method: 'POST',
+    headers: apiHeaders(),
+    body: JSON.stringify(itemsPayload),
+  });
+  if (!itemsRes.ok) {
+    throw new Error('Gagal menyimpan detail item (' + itemsRes.status + ')');
+  }
+
+  await Promise.all(
+    verifiedLines.map((line) =>
+      fetch(
+        SUPABASE_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(line.product_id),
+        {
+          method: 'PATCH',
+          headers: apiHeaders(),
+          body: JSON.stringify({
+            stock: line.next_stock,
+            is_available: line.next_stock > 0,
+          }),
+        }
+      )
+    )
+  );
+
+  return {
+    id: orderId,
+    invoiceNo,
+    tableNumber: lockedTableNumber,
+    customerName,
+    notes,
+    subtotal: verifiedSubtotal,
+    serviceFee: verifiedServiceFee,
+    total: verifiedTotal,
+    paymentChoice,
+    paymentMethod: paymentMethodValue,
+    paymentStatus: 'unpaid',
+    status: 'pesanan dibuat',
+    createdAt: (createdOrder && createdOrder.created_at) || now.toISOString(),
+    itemsSummary: verifiedLines.map((i) => i.product_name + ' x' + i.quantity),
+  };
+}
+
+// ============================================================================
+// Cek Pesanan, Persistensi Status Meja & Dialog Pembayaran
+// ============================================================================
+function getLastOrderStorageKey() {
+  return 'restokasir_last_order_' + (state.restoId || 'default') + '_' + String(lockedTableNumber || 0);
+}
+
+function saveLastOrder(summary) {
+  state.lastOrder = summary;
+  try {
+    if (summary && lockedTableNumber) {
+      localStorage.setItem(getLastOrderStorageKey(), JSON.stringify(summary));
+    }
+  } catch (e) {
+    // Abaikan bila storage dibatasi pada iframe
+  }
+  updateActiveOrderIndicators();
+}
+
+function restoreLastOrderFromStorage() {
+  try {
+    if (!lockedTableNumber) return;
+    const raw = localStorage.getItem(getLastOrderStorageKey());
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.invoiceNo && Number(parsed.tableNumber) === Number(lockedTableNumber)) {
+      state.lastOrder = parsed;
+      updateActiveOrderIndicators();
+    }
+  } catch (e) {
+    // Abaikan bila storage dibatasi
+  }
+}
+
+async function fetchLatestTableOrderFromServer() {
+  if (!lockedTableNumber) return null;
+  try {
+    const hasExtendedCols = await detectExtendedOrderSchema();
+    const selectCols = hasExtendedCols
+      ? 'id,invoice_no,table_number,cashier_name,subtotal,service_fee,total,payment_method,payment_status,status,created_at,order_items(product_name,quantity)'
+      : 'id,invoice_no,table_number,cashier_name,subtotal,service_fee,total,payment_method,status,created_at,order_items(product_name,quantity)';
+
+    let url =
+      SUPABASE_URL +
+      '/rest/v1/orders?table_number=eq.' +
+      encodeURIComponent(lockedTableNumber) +
+      '&order=created_at.desc&limit=1&select=' +
+      selectCols;
+
+    if (state.restoId) {
+      url += '&resto_id=eq.' + encodeURIComponent(state.restoId);
+    }
+
+    const res = await fetch(url, { headers: apiHeaders() });
+    if (!res.ok) return state.lastOrder;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return state.lastOrder;
+
+    const latest = rows[0];
+    // Hanya tampilkan pesanan dari 12 jam terakhir agar pesanan hari sebelumnya tidak membingungkan
+    const createdMs = Date.parse(latest.created_at || '');
+    if (Number.isFinite(createdMs) && Date.now() - createdMs > 12 * 60 * 60 * 1000) {
+      return state.lastOrder;
+    }
+
+    const rawCashier = String(latest.cashier_name || '');
+    let customerName = '-';
+    const nameMatch = rawCashier.match(/\(([^)]+)\)/);
+    if (nameMatch && nameMatch[1]) {
+      customerName = nameMatch[1];
+    }
+
+    let notes = '';
+    const notesMatch = rawCashier.match(/Catatan:\s*(.+?)(?:\s*\[QRIS DEMO\]|$)/);
+    if (notesMatch && notesMatch[1]) {
+      notes = notesMatch[1].trim();
+    }
+
+    const pmUpper = String(latest.payment_method || '').toUpperCase();
+    const paymentChoice = pmUpper.includes('QRIS') ? 'QRIS_DEMO' : 'CASHIER';
+    const itemsArr = Array.isArray(latest.order_items)
+      ? latest.order_items.map((it) => it.product_name + ' x' + it.quantity)
+      : state.lastOrder && state.lastOrder.id === latest.id
+        ? state.lastOrder.itemsSummary
+        : [];
+
+    const syncedOrder = {
+      id: latest.id,
+      invoiceNo: latest.invoice_no || '-',
+      tableNumber: lockedTableNumber,
+      customerName,
+      notes,
+      subtotal: Number(latest.subtotal) || 0,
+      serviceFee: Number(latest.service_fee) || 0,
+      total: Number(latest.total) || 0,
+      paymentChoice,
+      paymentMethod: latest.payment_method || 'CASHIER',
+      paymentStatus:
+        latest.payment_status ||
+        (String(latest.status || '').toLowerCase().includes('selesai') ? 'paid' : 'unpaid'),
+      status: latest.status || 'pesanan dibuat',
+      createdAt: latest.created_at || new Date().toISOString(),
+      itemsSummary: itemsArr,
+    };
+
+    saveLastOrder(syncedOrder);
+    return syncedOrder;
+  } catch (e) {
+    return state.lastOrder;
+  }
+}
+
+function updateActiveOrderIndicators() {
+  const dot = document.getElementById('checkOrderDot');
+  const bar = document.getElementById('activeOrderBar');
+  const titleEl = document.getElementById('activeOrderTitle');
+  const subEl = document.getElementById('activeOrderSub');
+  const ctaEl = document.getElementById('activeOrderCta');
+
+  if (!state.lastOrder || !tableValidated) {
+    if (dot) dot.hidden = true;
+    if (bar) bar.hidden = true;
+    return;
+  }
+
+  const order = state.lastOrder;
+  const paid = isOrderPaid(order);
+  const demoDone = isDemoQrisDone(order);
+
+  if (dot) {
+    dot.hidden = false;
+    dot.classList.toggle('paid', paid || demoDone);
+  }
+
+  if (bar) {
+    bar.hidden = false;
+    bar.classList.toggle('is-paid', paid);
+  }
+
+  if (titleEl) {
+    if (paid) {
+      titleEl.textContent = 'Pesanan Dikonfirmasi Kasir (PAID)';
+    } else if (demoDone) {
+      titleEl.textContent = 'Terkirim ke Kasir • Simulasi QRIS Selesai';
+    } else {
+      titleEl.textContent = 'Pesanan Terkirim ke Kasir • Menunggu Bayar';
+    }
+  }
+
+  if (subEl) {
+    subEl.textContent =
+      order.invoiceNo + ' • ' + formatRupiah(order.total) + ' • Ketuk untuk cek detail';
+  }
+
+  if (ctaEl) {
+    ctaEl.textContent = paid ? 'Lunas ✓' : 'Cek Status';
+  }
+}
+
+async function handleCheckOrderClick() {
+  if (!tableValidated || !lockedTableNumber) return;
+  const dlg = document.getElementById('orderFlowModal');
+  if (state.lastOrder) {
+    openOrderFlowModal(state.lastOrder);
+    await manualRefreshOrderStatus(true);
+    return;
+  }
+
+  // Coba ambil pesanan terbaru meja ini dari Supabase terlebih dahulu
+  const fetched = await fetchLatestTableOrderFromServer();
+  if (fetched) {
+    openOrderFlowModal(fetched);
+    return;
+  }
+
+  // Jika belum ada pesanan sama sekali untuk meja ini, tampilkan dialog kosong yang informatif
+  renderEmptyCheckOrderModal();
+  if (dlg && !dlg.open) dlg.showModal();
+}
+
+function renderEmptyCheckOrderModal() {
+  const emptyView = document.getElementById('emptyOrderCheckView');
+  const activeWrap = document.getElementById('activeOrderFlowWrap');
+  const refreshBtn = document.getElementById('btnRefreshOrderStatus');
+  const emptyDesc = document.getElementById('emptyOrderCheckDesc');
+
+  if (emptyView) emptyView.hidden = false;
+  if (activeWrap) activeWrap.hidden = true;
+  if (refreshBtn) refreshBtn.hidden = true;
+  if (emptyDesc && lockedTableNumber) {
+    emptyDesc.innerHTML =
+      'Belum ada pesanan aktif dari <strong>' +
+      escapeHtml(formatTableLabel(lockedTableNumber)) +
+      '</strong> yang dikirim ke kasir. Pilih menu lalu tekan <strong>Buat Pesanan</strong> untuk mengirim pesanan ke kasir.';
+  }
+}
+
+async function manualRefreshOrderStatus(silent = false) {
+  const btn = document.getElementById('btnRefreshOrderStatus');
+  if (btn && !silent) {
+    btn.disabled = true;
+    btn.textContent = 'Memeriksa...';
+  }
+  try {
+    const updated = await fetchLatestTableOrderFromServer();
+    if (updated) {
+      renderOrderFlowModal(updated);
+      if (!silent) {
+        showToast(
+          isOrderPaid(updated)
+            ? 'Status terbaru: Pembayaran telah dikonfirmasi kasir (PAID)'
+            : 'Status terbaru: Pesanan sudah terkirim ke kasir'
+        );
+      }
+    }
+  } finally {
+    if (btn && !silent) {
+      btn.disabled = false;
+      btn.textContent = 'Perbarui Status';
+    }
+  }
+}
+
+function openOrderFlowModal(order) {
+  renderOrderFlowModal(order);
+  const dlg = document.getElementById('orderFlowModal');
+  if (dlg && !dlg.open) dlg.showModal();
+  startOrderListeners(order);
+}
+
+function closeOrderFlowModal() {
+  stopOrderListeners();
+  const dlg = document.getElementById('orderFlowModal');
+  if (dlg && dlg.open) dlg.close();
+}
+
+function isOrderPaid(order) {
+  const ps = (order.paymentStatus || '').toLowerCase();
+  const st = (order.status || '').toLowerCase();
+  return ps === 'paid' || st === 'pesanan selesai' || st === 'selesai';
+}
+
+function isDemoQrisDone(order) {
+  const ps = (order.paymentStatus || '').toLowerCase();
+  const pm = (order.paymentMethod || '').toLowerCase();
+  return ps === 'demo_paid' || pm.includes('demo berhasil');
+}
+
+function renderOrderFlowModal(order) {
+  const emptyView = document.getElementById('emptyOrderCheckView');
+  const activeWrap = document.getElementById('activeOrderFlowWrap');
+  const refreshBtn = document.getElementById('btnRefreshOrderStatus');
+  if (emptyView) emptyView.hidden = true;
+  if (activeWrap) activeWrap.hidden = false;
+  if (refreshBtn) refreshBtn.hidden = false;
+
+  const paid = isOrderPaid(order);
+  const demoDone = isDemoQrisDone(order);
+  const isDemoChoice =
+    order.paymentChoice === 'QRIS_DEMO' ||
+    (order.paymentMethod || '').toUpperCase().includes('QRIS_DEMO') ||
+    (order.paymentMethod || '').toUpperCase().includes('QRIS DEMO');
+
+  const stepSentDesc = document.getElementById('stepSentDesc');
+  const stepConfirmBox = document.getElementById('stepCashierConfirm');
+  const stepConfirmBadge = document.getElementById('stepConfirmBadge');
+  const stepConfirmTitle = document.getElementById('stepConfirmTitle');
+  const stepConfirmDesc = document.getElementById('stepConfirmDesc');
+
+  if (stepSentDesc) {
+    stepSentDesc.textContent = 'Masuk pukul ' + formatOrderTime(order.createdAt);
+  }
+  if (stepConfirmBox) {
+    stepConfirmBox.classList.toggle('done', paid || demoDone);
+    stepConfirmBox.classList.toggle('pending', !paid && !demoDone);
+  }
+  if (stepConfirmBadge) {
+    stepConfirmBadge.innerHTML = paid || demoDone ? '&#10003;' : '2';
+  }
+  if (stepConfirmTitle) {
+    stepConfirmTitle.textContent = paid
+      ? '2. Dikonfirmasi Kasir'
+      : demoDone
+        ? '2. Simulasi Selesai'
+        : '2. Konfirmasi Kasir';
+  }
+  if (stepConfirmDesc) {
+    stepConfirmDesc.textContent = paid
+      ? 'Pembayaran lunas (PAID)'
+      : demoDone
+        ? 'Simulasi QRIS berhasil'
+        : 'Menunggu konfirmasi kasir';
+  }
+
+  const banner = document.getElementById('orderStatusBanner');
+  const titleEl = document.getElementById('orderStatusTitle');
+  const subEl = document.getElementById('orderStatusSub');
+  const iconEl = document.getElementById('orderStatusIcon');
+  const qrisView = document.getElementById('qrisDemoView');
+  const qrStage = document.getElementById('qrisDemoQrStage');
+  const qrLoadStage = document.getElementById('qrisDemoLoadingStage');
+  const cashierBox = document.getElementById('cashierInstructionBox');
+
+  banner.classList.remove('completed', 'demo-done');
+
+  let pillHtml = '<span class="status-pill unpaid">UNPAID</span>';
+  const checkSvg =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>';
+  const clockSvg =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>';
+
+  if (paid) {
+    banner.classList.add('completed');
+    iconEl.innerHTML = checkSvg;
+    titleEl.textContent = 'Pembayaran Dikonfirmasi (PAID)';
+    subEl.textContent = 'Kasir telah mengonfirmasi pembayaran Anda.';
+    pillHtml = '<span class="status-pill paid">PAID</span>';
+  } else if (isDemoChoice && demoDone) {
+    banner.classList.add('demo-done');
+    iconEl.innerHTML = checkSvg;
+    titleEl.textContent = 'Pembayaran Demo Berhasil';
+    subEl.textContent = 'Status simulasi: DEMO BERHASIL (bukan transaksi merchant aktif)';
+    pillHtml = '<span class="status-pill demo">DEMO BERHASIL</span>';
+  } else if (isDemoChoice) {
+    iconEl.innerHTML = clockSvg;
+    titleEl.textContent = 'Pembayaran QRIS (MODE DEMO)';
+    subEl.textContent = 'Scan QR dummy (teks BAYAR) lalu tekan tombol simulasi.';
+    pillHtml = '<span class="status-pill unpaid">UNPAID (DEMO)</span>';
+  } else {
+    iconEl.innerHTML = clockSvg;
+    titleEl.textContent = 'Menunggu Pembayaran di Kasir';
+    subEl.textContent = 'Status pembayaran: UNPAID';
+    pillHtml = '<span class="status-pill unpaid">UNPAID</span>';
+  }
+
+  document.getElementById('flowTableNumber').textContent =
+    formatTableLabel(order.tableNumber);
+  document.getElementById('flowInvoiceLine').textContent =
+    'Nomor Pesanan: ' + order.invoiceNo;
+
+  if (isDemoChoice && !paid && !demoDone) {
+    qrisView.hidden = false;
+    cashierBox.hidden = true;
+    qrStage.hidden = false;
+    qrLoadStage.hidden = true;
+    document.getElementById('qrisDemoAmount').textContent = formatRupiah(order.total);
+
+    const canvas = document.getElementById('webQrisCanvas');
+    if (canvas) {
+      canvas.innerHTML = '';
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(canvas, {
+          text: 'BAYAR',
+          width: 164,
+          height: 164,
+          colorDark: '#171614',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      }
+    }
+  } else if (!isDemoChoice && !paid) {
+    qrisView.hidden = true;
+    cashierBox.hidden = false;
+  } else {
+    qrisView.hidden = true;
+    cashierBox.hidden = true;
+  }
+
+  const itemsText = Array.isArray(order.itemsSummary)
+    ? order.itemsSummary.join(', ')
+    : '-';
+
+  const notesLine = order.notes
+    ? '<div class="receipt-line receipt-line--stack"><span>Catatan</span><strong>' +
+      escapeHtml(order.notes) +
+      '</strong></div>'
+    : '';
+
+  const methodDisplay = isDemoChoice ? 'QRIS (MODE DEMO)' : 'Bayar Melalui Kasir';
+
+  document.getElementById('flowOrderDetails').innerHTML =
+    '<div class="receipt-line"><span>Status Pembayaran</span><strong>' +
+    pillHtml +
+    '</strong></div>' +
+    '<div class="receipt-line"><span>Nomor Pesanan</span><strong>' +
+    escapeHtml(order.invoiceNo) +
+    '</strong></div>' +
+    '<div class="receipt-line"><span>Nomor Meja</span><strong>' +
+    escapeHtml(formatTableLabel(order.tableNumber)) +
+    '</strong></div>' +
+    '<div class="receipt-line"><span>Waktu Pesan</span><strong>' +
+    escapeHtml(formatOrderTime(order.createdAt)) +
+    '</strong></div>' +
+    '<div class="receipt-line"><span>Pemesan</span><strong>' +
+    escapeHtml(order.customerName) +
+    '</strong></div>' +
+    '<div class="receipt-line"><span>Metode Bayar</span><strong>' +
+    escapeHtml(methodDisplay) +
+    '</strong></div>' +
+    '<div class="receipt-line receipt-line--stack"><span>Detail Pesanan</span><strong>' +
+    escapeHtml(itemsText) +
+    '</strong></div>' +
+    notesLine +
+    '<div class="receipt-line receipt-line--total">' +
+    '<span>Total Pembayaran</span><strong class="tabular">' +
+    formatRupiah(order.total) +
+    '</strong></div>';
+}
+
+async function confirmDemoQrisSimulation() {
+  if (!state.lastOrder || !state.lastOrder.id) return;
+  if (state.lastOrder.paymentChoice !== 'QRIS_DEMO') return;
+
+  const qrStage = document.getElementById('qrisDemoQrStage');
+  const qrLoadStage = document.getElementById('qrisDemoLoadingStage');
+  const btn = document.getElementById('btnConfirmDemoQris');
+
+  if (btn) btn.disabled = true;
+  if (qrStage) qrStage.hidden = true;
+  if (qrLoadStage) qrLoadStage.hidden = false;
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 900));
+
+    let confirmed = false;
+    const rpcRes = await fetch(
+      SUPABASE_URL + '/rest/v1/rpc/confirm_demo_qris_order',
+      {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify({ p_order_id: state.lastOrder.id }),
+      }
+    );
+
+    if (rpcRes.ok) {
+      confirmed = true;
+    } else if (rpcRes.status === 404) {
+      const hasExtendedCols = await detectExtendedOrderSchema();
+      const patchBody = hasExtendedCols
+        ? { payment_status: 'demo_paid' }
+        : { payment_method: 'QRIS DEMO (DEMO BERHASIL)' };
+
+      const patchRes = await fetch(
+        SUPABASE_URL +
+          '/rest/v1/orders?id=eq.' +
+          encodeURIComponent(state.lastOrder.id),
+        {
+          method: 'PATCH',
+          headers: apiHeaders(),
+          body: JSON.stringify(patchBody),
+        }
+      );
+      if (!patchRes.ok) {
+        throw new Error('HTTP ' + patchRes.status);
+      }
+      confirmed = true;
+    } else {
+      throw new Error('HTTP ' + rpcRes.status);
+    }
+
+    if (confirmed) {
+      state.lastOrder.paymentStatus = 'demo_paid';
+      state.lastOrder.paymentMethod = 'QRIS DEMO (DEMO BERHASIL)';
+      saveLastOrder(state.lastOrder);
+      renderOrderFlowModal(state.lastOrder);
+      showToast('Simulasi pembayaran QRIS DEMO berhasil');
+    }
+  } catch (err) {
+    console.error('Demo QRIS confirm error:', err);
+    if (qrStage) qrStage.hidden = false;
+    if (qrLoadStage) qrLoadStage.hidden = true;
+    showToast('Gagal menyelesaikan simulasi QRIS DEMO');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function applyRealtimeOrderRowUpdate(row) {
+  if (!row || !state.lastOrder || row.id !== state.lastOrder.id) return;
+
+  const nextStatus = row.status || state.lastOrder.status;
+  const nextPayStatus =
+    row.payment_status ||
+    (nextStatus.toLowerCase() === 'pesanan selesai' || nextStatus.toLowerCase() === 'selesai'
+      ? 'paid'
+      : state.lastOrder.paymentStatus);
+
+  const changed =
+    nextStatus !== state.lastOrder.status ||
+    nextPayStatus !== state.lastOrder.paymentStatus;
+
+  if (changed) {
+    const wasPaid = isOrderPaid(state.lastOrder);
+    state.lastOrder.status = nextStatus;
+    state.lastOrder.paymentStatus = nextPayStatus;
+    saveLastOrder(state.lastOrder);
+    renderOrderFlowModal(state.lastOrder);
+
+    if (!wasPaid && isOrderPaid(state.lastOrder)) {
+      showToast('Pembayaran telah dikonfirmasi oleh kasir (PAID)');
+    }
+  }
+}
+
+function startOrderListeners(order) {
+  stopOrderListeners();
+  if (!order || !order.id) return;
+
+  const sb = getSupabaseClient();
+  if (sb) {
+    try {
+      state.realtimeChannel = sb
+        .channel('qr-order-' + order.id)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders',
+            filter: 'id=eq.' + order.id,
+          },
+          (payload) => {
+            if (payload && payload.new) {
+              applyRealtimeOrderRowUpdate(payload.new);
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Supabase Realtime fallback aktif:', e);
+    }
+  }
+
+  state.statusPollTimer = setInterval(async () => {
+    try {
+      const hasExtendedCols = await detectExtendedOrderSchema();
+      const selectCols = hasExtendedCols ? 'id,status,payment_status' : 'id,status';
+      const res = await fetch(
+        SUPABASE_URL +
+          '/rest/v1/orders?id=eq.' +
+          encodeURIComponent(order.id) +
+          '&select=' +
+          selectCols,
+        { headers: apiHeaders() }
+      );
+      if (!res.ok) return;
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0) {
+        applyRealtimeOrderRowUpdate(rows[0]);
+      }
+    } catch (e) {
+      // Silent retry
+    }
+  }, 4000);
+}
+
+function stopOrderListeners() {
+  if (state.statusPollTimer) {
+    clearInterval(state.statusPollTimer);
+    state.statusPollTimer = null;
+  }
+  if (state.realtimeChannel) {
+    try {
+      state.realtimeChannel.unsubscribe();
+    } catch (e) {
+      // Ignore cleanup error
+    }
+    state.realtimeChannel = null;
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toastEl');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+  </script>
+</body>
+</html>
