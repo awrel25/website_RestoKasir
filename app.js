@@ -708,6 +708,11 @@ function renderMenuGrid() {
         '<h3 class="menu-name">' +
         escapeHtml(p.name) +
         '</h3>' +
+        (p.description && String(p.description).trim()
+          ? '<p class="menu-desc-snippet">' +
+            escapeHtml(String(p.description).trim()) +
+            '</p>'
+          : '') +
         '</div>' +
         '</button>' +
         '<div class="menu-footer">' +
@@ -781,11 +786,22 @@ function renderProductDetailDialog(productId) {
     '<div class="detail-price tabular">' +
     formatRupiah(product.price) +
     '</div>' +
-    '<p class="detail-desc">Pesanan untuk <strong>' +
+    '<div class="detail-desc-box">' +
+    '<div class="detail-desc-label">Deskripsi Makanan</div>' +
+    '<p class="detail-desc">' +
+    escapeHtml(
+      product.description && String(product.description).trim()
+        ? String(product.description).trim()
+        : product.name +
+            ' disajikan hangat dan lezat dengan bahan-bahan pilihan berkualitas khas ' +
+            (state.restoName || 'RestoKasir') +
+            '.'
+    ) +
+    '</p>' +
+    '</div>' +
+    '<p class="detail-table-note">Pesanan untuk <strong>' +
     escapeHtml(formatTableLabel(lockedTableNumber)) +
-    '</strong> akan langsung diteruskan ke sistem kasir ' +
-    escapeHtml(state.restoName) +
-    '.</p>';
+    '</strong> akan langsung diteruskan ke sistem kasir.</p>';
 
   const footer = document.getElementById('detailModalFooter');
   if (inCart > 0) {
