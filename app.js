@@ -788,14 +788,13 @@ function renderProductDetailDialog(productId) {
     '</div>' +
     '<div class="detail-desc-box">' +
     '<div class="detail-desc-label">Deskripsi Makanan</div>' +
-    '<p class="detail-desc">' +
+    '<p class="detail-desc' +
+    (product.description && String(product.description).trim() ? '' : ' text-muted') +
+    '">' +
     escapeHtml(
       product.description && String(product.description).trim()
         ? String(product.description).trim()
-        : product.name +
-            ' disajikan hangat dan lezat dengan bahan-bahan pilihan berkualitas khas ' +
-            (state.restoName || 'RestoKasir') +
-            '.'
+        : 'Belum ada deskripsi makanan yang dicantumkan pada aplikasi kasir.'
     ) +
     '</p>' +
     '</div>' +
