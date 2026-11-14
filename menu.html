@@ -2286,13 +2286,6 @@ dialog.app-dialog::backdrop {
   <div class="toast" id="toastEl" role="status" aria-live="polite"></div>
 
   <script>
-/* ============================================================================
-   RestoKasir Customer Self-Order Application
-   - Automatic Table Identification (?table=04) & Backend Validation
-   - Locked Table Number (No Manual Table Switching)
-   - Dual Payment Modes: QRIS (MODE DEMO) & Bayar Melalui Kasir (Realtime)
-   ============================================================================ */
-
 const SUPABASE_URL = 'https://uinumtttwkwlurvqvidh.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpbnVtdHR0d2t3bHVydnF2aWRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTUxNTcsImV4cCI6MjEwMDI3MTE1N30.eSfjbxge6LA8fIqP9Cnepld7s4PgQgh_Eqi3O58DI1M';
@@ -3085,10 +3078,7 @@ function renderProductDetailDialog(productId) {
         : 'Belum ada deskripsi makanan yang dicantumkan pada aplikasi kasir.'
     ) +
     '</p>' +
-    '</div>' +
-    '<p class="detail-table-note">Pesanan untuk <strong>' +
-    escapeHtml(formatTableLabel(lockedTableNumber)) +
-    '</strong> akan langsung diteruskan ke sistem kasir.</p>';
+    '</div>';
 
   const footer = document.getElementById('detailModalFooter');
   if (inCart > 0) {

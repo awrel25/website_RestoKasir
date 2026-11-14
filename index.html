@@ -3085,10 +3085,7 @@ function renderProductDetailDialog(productId) {
         : 'Belum ada deskripsi makanan yang dicantumkan pada aplikasi kasir.'
     ) +
     '</p>' +
-    '</div>' +
-    '<p class="detail-table-note">Pesanan untuk <strong>' +
-    escapeHtml(formatTableLabel(lockedTableNumber)) +
-    '</strong> akan langsung diteruskan ke sistem kasir.</p>';
+    '</div>';
 
   const footer = document.getElementById('detailModalFooter');
   if (inCart > 0) {
