@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:my_app/core/theme/auth_theme.dart';
@@ -16,82 +16,113 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailController = TextEditingController();
   final supabase = Supabase.instance.client;
 
-  int selectedMethod = 0; // 0: Email Link, 1: OTP Code
+  static const String recoveryRedirectUrl =
+      'https://awrel25.github.io/website_RestoKasir/reset-password.html';
+
+  int selectedMethod = 0; // 0: Link Email, 1: Kode OTP
   bool loading = false;
   bool sentLinkSuccess = false;
 
+  // Timer cooldown untuk pengiriman ulang email
+  Timer? _resendTimer;
+  int _cooldownSeconds = 0;
+
+  @override
+  void dispose() {
+    _resendTimer?.cancel();
+    emailController.dispose();
+    super.dispose();
+  }
+
+  void _startCooldown(int seconds) {
+    _resendTimer?.cancel();
+    setState(() => _cooldownSeconds = seconds);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_cooldownSeconds > 1) {
+        setState(() => _cooldownSeconds--);
+      } else {
+        setState(() => _cooldownSeconds = 0);
+        timer.cancel();
+      }
+    });
+  }
+
+  bool _validateEmail(String email) {
+    if (email.isEmpty) {
+      showMessage('Silakan masukkan alamat email akun Anda.');
+      return false;
+    }
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$',
+    );
+    if (!emailRegex.hasMatch(email)) {
+      showMessage('Format alamat email tidak valid (contoh: kasir@restoran.com).');
+      return false;
+    }
+    return true;
+  }
+
   Future<void> handleAction() async {
-    final email = emailController.text.trim().toLowerCase();
-    if (email.isEmpty || !email.contains('@')) {
-      showMessage('Masukkan alamat email yang valid.');
+    if (_cooldownSeconds > 0) {
+      showMessage(
+        'Harap tunggu $_cooldownSeconds detik sebelum meminta pengiriman ulang.',
+      );
       return;
     }
+
+    final email = emailController.text.trim().toLowerCase();
+    if (!_validateEmail(email)) return;
 
     setState(() => loading = true);
 
     try {
       if (selectedMethod == 0) {
-        // Metode Link Email
-        try {
-          await supabase.auth.resetPasswordForEmail(
-            email,
-            redirectTo: kIsWeb
-                ? 'http://localhost:3000/#/reset-password'
-                : 'io.supabase.restokasir://reset-password',
-          );
-          if (!mounted) return;
-          setState(() => sentLinkSuccess = true);
-        } on AuthException catch (e) {
-          final msg = e.message.toLowerCase();
-          if (msg.contains('sending recovery email') || msg.contains('rate limit')) {
-            showMessage('Server email Supabase mencapai batas kuota. Silakan gunakan metode Kode OTP.');
-          } else {
-            showMessage(e.message);
-          }
-        }
-      } else {
-        // Metode Kode OTP
-        bool serverSent = false;
-        try {
-          await supabase.auth.resetPasswordForEmail(email);
-          serverSent = true;
-        } on AuthException catch (e) {
-          debugPrint('Catatan kirim OTP Supabase: ${e.message}');
-          // Jika server email gagal (500 / limit SMTP), gunakan fallback test OTP
-          serverSent = false;
-        } catch (e) {
-          debugPrint('Error kirim OTP: $e');
-          serverSent = false;
-        }
+        // =====================================================================
+        // METODE 1: RESET PASSWORD MENGGUNAKAN EMAIL LINK
+        // =====================================================================
+        await supabase.auth.resetPasswordForEmail(
+          email,
+          redirectTo: recoveryRedirectUrl,
+        );
 
         if (!mounted) return;
+        setState(() => sentLinkSuccess = true);
+        _startCooldown(60);
+        showMessage('Link pemulihan kata sandi berhasil dikirim ke email Anda.');
+      } else {
+        // =====================================================================
+        // METODE 2: RESET PASSWORD MENGGUNAKAN KODE OTP
+        // =====================================================================
+        await supabase.auth.resetPasswordForEmail(email);
 
-        if (serverSent) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ResetPasswordOtpScreen(
-                email: email,
-                isMockFallback: false,
-              ),
+        if (!mounted) return;
+        showMessage('Kode OTP pemulihan kata sandi telah dikirim ke $email.');
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ResetPasswordOtpScreen(
+              email: email,
             ),
-          );
-        } else {
-          // Jika SMTP server Supabase belum terkonfigurasi/kuota habis,
-          // berikan kode OTP pengujian (888999) agar pengguna tidak terhambat
-          const fallbackOtp = '888999';
-          showMessage('Catatan: SMTP Supabase belum aktif. Gunakan kode OTP pengujian: $fallbackOtp');
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ResetPasswordOtpScreen(
-                email: email,
-                isMockFallback: true,
-                testOtp: fallbackOtp,
-              ),
-            ),
-          );
-        }
+          ),
+        );
+      }
+    } on AuthException catch (e) {
+      final msg = e.message.toLowerCase();
+      if (msg.contains('rate limit') || msg.contains('over_email_send_rate_limit')) {
+        showMessage(
+          'Batas pengiriman email Supabase tercapai. Silakan tunggu beberapa saat atau gunakan metode alternatif.',
+        );
+      } else if (msg.contains('user not found') || msg.contains('email not found')) {
+        showMessage(
+          'Alamat email "$email" tidak terdaftar pada sistem RestoKasir.',
+        );
+      } else {
+        showMessage(e.message);
       }
     } catch (e) {
       showMessage('Gagal memproses permintaan reset password: $e');
@@ -106,14 +137,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    super.dispose();
   }
 
   @override
@@ -131,7 +157,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: ResponsiveAuthLayout(
           bannerTitle: 'Lupa Kata Sandi?',
           bannerSubtitle:
-              'Jangan khawatir, kami akan membantu memulihkan akses ke akun RestoKasir Anda dengan aman.',
+              'Pilih metode pemulihan yang paling nyaman bagi Anda untuk mengatur ulang kata sandi RestoKasir dengan aman.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -139,9 +165,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const BrandHeader(
                 title: 'Reset Kata Sandi',
                 subtitle:
-                    'Pilih metode verifikasi untuk mengatur ulang kata sandi akun RestoKasir kamu.',
+                    'Pilih metode verifikasi untuk mengatur ulang kata sandi akun RestoKasir Anda.',
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
               if (!sentLinkSuccess) ...[
                 MethodTabToggle(
                   selectedIndex: selectedMethod,
@@ -149,7 +175,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     setState(() => selectedMethod = index);
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 AuthField(
                   controller: emailController,
                   label: 'Email Terdaftar',
@@ -157,7 +183,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   icon: Icons.mail_outline_rounded,
                   keyboardType: TextInputType.emailAddress,
                 ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 8),
+                Text(
+                  selectedMethod == 0
+                      ? 'Link reset dengan tombol konfirmasi akan dikirim ke email ini dan dapat dibuka dari perangkat apapun.'
+                      : 'Kode verifikasi OTP 6 digit resmi dari Supabase akan dikirimkan ke email ini.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.muted(context),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
                 PrimaryButton(
                   text: selectedMethod == 0
                       ? 'Kirim Link Reset via Email'
@@ -176,14 +213,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   child: Column(
                     children: [
-                      const Icon(
-                        Icons.mark_email_read_outlined,
-                        color: AppColors.primary,
-                        size: 52,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(25),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.mark_email_read_rounded,
+                          color: AppColors.primary,
+                          size: 48,
+                        ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 16),
                       Text(
-                        'Periksa Email Anda',
+                        'Email Pemulihan Terkirim',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -192,12 +236,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Jika email terdaftar, link untuk membuat kata sandi baru telah dikirim ke ${emailController.text.trim()}.',
+                        'Kami telah mengirim email pemulihan ke:\n${emailController.text.trim()}\n\nSilakan buka email Anda lalu tekan tombol "RESET PASSWORD" untuk membuat kata sandi baru.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppColors.muted(context),
                           height: 1.5,
-                          fontSize: 14,
+                          fontSize: 13.5,
                         ),
                       ),
                     ],
@@ -216,12 +260,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 12),
                 Center(
-                  child: TextButton(
-                    onPressed: loading ? null : handleAction,
-                    child: const Text(
-                      'Kirim Ulang Email',
-                      style: TextStyle(
-                        color: AppColors.primary,
+                  child: TextButton.icon(
+                    onPressed: (loading || _cooldownSeconds > 0)
+                        ? null
+                        : handleAction,
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: Text(
+                      _cooldownSeconds > 0
+                          ? 'Kirim Ulang Email (${_cooldownSeconds}s)'
+                          : 'Kirim Ulang Email',
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                       ),
                     ),

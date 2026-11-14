@@ -9,14 +9,10 @@ import 'package:my_app/screens/auth/reset_password_screen.dart';
 
 class ResetPasswordOtpScreen extends StatefulWidget {
   final String email;
-  final bool isMockFallback;
-  final String? testOtp;
 
   const ResetPasswordOtpScreen({
     super.key,
     required this.email,
-    this.isMockFallback = false,
-    this.testOtp,
   });
 
   @override
@@ -24,28 +20,21 @@ class ResetPasswordOtpScreen extends StatefulWidget {
       _ResetPasswordOtpScreenState();
 }
 
-class _ResetPasswordOtpScreenState
-    extends State<ResetPasswordOtpScreen> {
+class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
   final supabase = Supabase.instance.client;
-
-  final TextEditingController otpController =
-      TextEditingController();
-
+  final TextEditingController otpController = TextEditingController();
   final FocusNode otpFocusNode = FocusNode();
 
   Timer? timer;
-
   bool loading = false;
   bool canResend = false;
-
   int countdownSeconds = 60;
-
   String otpCode = '';
+  int remainingAttempts = 5;
 
   @override
   void initState() {
     super.initState();
-
     _startResendTimer();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -56,138 +45,90 @@ class _ResetPasswordOtpScreenState
   }
 
   // ============================================================
-  // TIMER RESEND OTP
+  // TIMER RESEND OTP (60 DETIK)
   // ============================================================
 
   void _startResendTimer() {
     timer?.cancel();
-
     countdownSeconds = 60;
     canResend = false;
 
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
 
-    timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (timer) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
+    timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
 
-        if (countdownSeconds > 0) {
-          setState(() {
-            countdownSeconds--;
-          });
-        } else {
-          setState(() {
-            canResend = true;
-          });
-
-          timer.cancel();
-        }
-      },
-    );
+      if (countdownSeconds > 0) {
+        setState(() {
+          countdownSeconds--;
+        });
+      } else {
+        setState(() {
+          canResend = true;
+        });
+        t.cancel();
+      }
+    });
   }
 
   // ============================================================
-  // RESEND OTP
+  // RESEND OTP DENGAN SUPABASE AUTH
   // ============================================================
 
   Future<void> resendOtp() async {
-    if (!canResend || loading) {
-      return;
-    }
+    if (!canResend || loading) return;
 
-    setState(() {
-      loading = true;
-    });
+    setState(() => loading = true);
 
     try {
-      await supabase.auth.resetPasswordForEmail(
-        widget.email,
-      );
+      await supabase.auth.resetPasswordForEmail(widget.email);
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       otpController.clear();
-
       setState(() {
         otpCode = '';
+        remainingAttempts = 5;
       });
 
       _startResendTimer();
-
-      showMessage(
-        'Kode OTP baru telah dikirim ke ${widget.email}',
-      );
-
+      showMessage('Kode OTP baru telah dikirimkan ke ${widget.email}');
       otpFocusNode.requestFocus();
     } on AuthException catch (e) {
-      if (mounted) {
+      final msg = e.message.toLowerCase();
+      if (msg.contains('rate limit')) {
+        showMessage('Batas pengiriman OTP tercapai. Harap tunggu beberapa menit.');
+      } else {
         showMessage(e.message);
       }
     } catch (e) {
-      if (mounted) {
-        showMessage(
-          'Gagal mengirim ulang kode OTP.',
-        );
-      }
+      showMessage('Gagal mengirim ulang kode OTP: $e');
     } finally {
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
-      }
+      if (mounted) setState(() => loading = false);
     }
   }
 
   // ============================================================
-  // VERIFY OTP
+  // VERIFIKASI OTP RESMI SUPABASE (OtpType.recovery)
   // ============================================================
 
   Future<void> verifyOtp() async {
+    if (remainingAttempts <= 0) {
+      showMessage('Batas percobaan verifikasi habis. Silakan kirim ulang kode OTP.');
+      return;
+    }
+
     final token = otpController.text.trim();
 
-    if (token.length != 6) {
-      showMessage(
-        'Kode OTP harus terdiri dari 6 angka.',
-      );
+    if (token.length != 6 || !RegExp(r'^\d{6}$').hasMatch(token)) {
+      showMessage('Kode OTP harus terdiri dari 6 digit angka.');
       return;
     }
 
-    if (!RegExp(r'^\d{6}$').hasMatch(token)) {
-      showMessage(
-        'Kode OTP hanya boleh terdiri dari 6 angka.',
-      );
-      return;
-    }
-
-    setState(() {
-      loading = true;
-    });
-
-    // Jika dalam mode fallback karena server email Supabase bermasalah:
-    if (widget.isMockFallback) {
-      if (token == widget.testOtp || token == '888999' || token == '123456') {
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ResetPasswordScreen(targetEmail: widget.email),
-          ),
-        );
-        return;
-      } else {
-        showMessage('Kode OTP tidak sesuai. Masukkan kode: ${widget.testOtp ?? "888999"}');
-        setState(() => loading = false);
-        return;
-      }
-    }
+    setState(() => loading = true);
 
     try {
       final response = await supabase.auth.verifyOTP(
@@ -197,14 +138,12 @@ class _ResetPasswordOtpScreenState
       );
 
       if (response.session == null) {
-        throw const AuthException(
-          'Kode OTP tidak valid atau sudah kadaluarsa.',
-        );
+        throw const AuthException('Sesi pemulihan gagal dibentuk oleh server.');
       }
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
+
+      showMessage('Kode OTP valid! Silakan atur kata sandi baru Anda.');
 
       Navigator.pushReplacement(
         context,
@@ -213,57 +152,47 @@ class _ResetPasswordOtpScreenState
         ),
       );
     } on AuthException catch (e) {
-      if (mounted) {
+      final msg = e.message.toLowerCase();
+      setState(() {
+        remainingAttempts = (remainingAttempts - 1).clamp(0, 5);
+      });
+
+      if (msg.contains('expired') || msg.contains('token has expired')) {
+        showMessage('Kode OTP telah kedaluwarsa. Silakan tekan "Kirim Ulang Kode OTP".');
+      } else if (msg.contains('invalid') || msg.contains('token is invalid') || msg.contains('token is not valid')) {
+        if (remainingAttempts > 0) {
+          showMessage('Kode OTP tidak sesuai. Sisa kesempatan: $remainingAttempts kali.');
+        } else {
+          showMessage('Kesempatan mencoba habis. Silakan kirim ulang kode OTP baru.');
+        }
+      } else {
         showMessage(e.message);
       }
     } catch (e) {
-      if (mounted) {
-        showMessage(
-          'Verifikasi OTP gagal. Silakan periksa kembali kode kamu.',
-        );
-      }
+      showMessage('Verifikasi OTP gagal. Silakan periksa kembali koneksi internet Anda.');
     } finally {
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
-      }
+      if (mounted) setState(() => loading = false);
     }
   }
 
-  // ============================================================
-  // SNACKBAR
-  // ============================================================
-
   void showMessage(String message) {
-    if (!mounted) {
-      return;
-    }
-
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
-
-  // ============================================================
-  // DISPOSE
-  // ============================================================
 
   @override
   void dispose() {
     timer?.cancel();
     otpController.dispose();
     otpFocusNode.dispose();
-
     super.dispose();
   }
-
-  // ============================================================
-  // BUILD
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -272,123 +201,97 @@ class _ResetPasswordOtpScreenState
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(
         child: ResponsiveAuthLayout(
           bannerTitle: 'Verifikasi Kode OTP',
           bannerSubtitle:
-              'Masukkan kode 6 digit yang telah dikirim ke email kamu.',
+              'Masukkan kode verifikasi 6 digit yang dikirimkan ke email akun Anda.',
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               const BrandHeader(
                 title: 'Verifikasi Kode OTP',
-                subtitle:
-                    'Masukkan 6 digit kode yang dikirimkan ke email:',
+                subtitle: 'Masukkan 6 digit kode OTP yang telah dikirim ke:',
               ),
-
               const SizedBox(height: 8),
-
-              Text(
-                widget.email,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(20),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.email_outlined, size: 16, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        widget.email,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              if (widget.isMockFallback && widget.testOtp != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: ThemeController.isDark(context)
-                        ? AppColors.yellowSoftDark
-                        : AppColors.yellowSoft,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.amber),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline_rounded,
-                        color: ThemeController.isDark(context)
-                            ? AppColors.yellow
-                            : AppColors.yellowText,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Server email sedang dibatasi. Gunakan kode OTP sementara: ${widget.testOtp}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: ThemeController.isDark(context)
-                                ? AppColors.yellow
-                                : AppColors.yellowText,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-
-              const SizedBox(height: 32),
-
+              const SizedBox(height: 28),
               OtpSixDigitField(
                 controller: otpController,
                 focusNode: otpFocusNode,
                 onChanged: (value) {
-                  setState(() {
-                    otpCode = value;
-                  });
+                  setState(() => otpCode = value);
+                  if (value.length == 6 && !loading) {
+                    verifyOtp();
+                  }
                 },
               ),
-
               const SizedBox(height: 14),
-
-              Center(
-                child: Text(
-                  'Kode OTP terdiri dari 6 angka',
-                  style: TextStyle(
-                    color: AppColors.muted(context),
-                    fontSize: 13,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Kode OTP resmi Supabase (6 digit)',
+                    style: TextStyle(
+                      color: AppColors.muted(context),
+                      fontSize: 12,
+                    ),
                   ),
-                ),
+                  if (remainingAttempts < 5)
+                    Text(
+                      'Sisa coba: $remainingAttempts',
+                      style: TextStyle(
+                        color: remainingAttempts > 1
+                            ? AppColors.amber
+                            : AppColors.statusCancelled,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                ],
               ),
-
-              const SizedBox(height: 28),
-
+              const SizedBox(height: 24),
               PrimaryButton(
                 text: 'Verifikasi & Lanjutkan',
-                onPressed:
-                    loading || otpCode.length != 6
-                        ? null
-                        : verifyOtp,
+                onPressed: (loading || otpCode.length != 6 || remainingAttempts <= 0)
+                    ? null
+                    : verifyOtp,
                 loading: loading,
               ),
-
               const SizedBox(height: 20),
-
               Center(
                 child: canResend
                     ? TextButton.icon(
-                        onPressed:
-                            loading ? null : resendOtp,
+                        onPressed: loading ? null : resendOtp,
                         icon: const Icon(
                           Icons.refresh_rounded,
                           size: 18,
@@ -402,12 +305,26 @@ class _ResetPasswordOtpScreenState
                           ),
                         ),
                       )
-                    : Text(
-                        'Kirim ulang kode dalam $countdownSeconds detik',
-                        style: TextStyle(
-                          color: AppColors.muted(context),
-                          fontSize: 13,
-                        ),
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Kirim ulang kode dalam $countdownSeconds detik',
+                            style: TextStyle(
+                              color: AppColors.muted(context),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
               ),
             ],
@@ -419,7 +336,7 @@ class _ResetPasswordOtpScreenState
 }
 
 // ============================================================
-// OTP 6 DIGIT FIELD
+// WIDGET KOTAK INPUT 6 DIGIT OTP RESPONSIF
 // ============================================================
 
 class OtpSixDigitField extends StatefulWidget {
@@ -435,91 +352,45 @@ class OtpSixDigitField extends StatefulWidget {
   });
 
   @override
-  State<OtpSixDigitField> createState() =>
-      _OtpSixDigitFieldState();
+  State<OtpSixDigitField> createState() => _OtpSixDigitFieldState();
 }
 
-class _OtpSixDigitFieldState
-    extends State<OtpSixDigitField> {
+class _OtpSixDigitFieldState extends State<OtpSixDigitField> {
   static const int otpLength = 6;
-
-  late final List<TextEditingController>
-      controllers;
-
+  late final List<TextEditingController> controllers;
   late final List<FocusNode> nodes;
 
   @override
   void initState() {
     super.initState();
-
-    controllers = List.generate(
-      otpLength,
-      (_) => TextEditingController(),
-    );
-
-    nodes = List.generate(
-      otpLength,
-      (_) => FocusNode(),
-    );
+    controllers = List.generate(otpLength, (_) => TextEditingController());
+    nodes = List.generate(otpLength, (_) => FocusNode());
   }
 
-  String get code {
-    return controllers
-        .map((controller) => controller.text)
-        .join();
-  }
-
-  // ============================================================
-  // UPDATE PARENT CONTROLLER
-  // ============================================================
+  String get code => controllers.map((c) => c.text).join();
 
   void _notifyChanged() {
     final value = code;
-
     widget.controller.value = TextEditingValue(
       text: value,
-      selection: TextSelection.collapsed(
-        offset: value.length,
-      ),
+      selection: TextSelection.collapsed(offset: value.length),
     );
-
     widget.onChanged?.call(value);
-
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
-  // ============================================================
-  // HANDLE OTP INPUT
-  // ============================================================
+  void _handleChange(int index, String value) {
+    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
 
-  void _handleChange(
-    int index,
-    String value,
-  ) {
-    final digits = value.replaceAll(
-      RegExp(r'[^0-9]'),
-      '',
-    );
-
-    // ========================================================
-    // PASTE OTP
-    // ========================================================
-
+    // Handle paste multiple digits
     if (digits.length > 1) {
-      final limited = digits.length > otpLength
-          ? digits.substring(0, otpLength)
-          : digits;
-
+      final limited = digits.length > otpLength ? digits.substring(0, otpLength) : digits;
       for (int i = 0; i < otpLength; i++) {
         controllers[i].clear();
       }
-
       for (int i = 0; i < limited.length; i++) {
         controllers[i].text = limited[i];
       }
-
       _notifyChanged();
 
       if (limited.length == otpLength) {
@@ -527,19 +398,13 @@ class _OtpSixDigitFieldState
       } else {
         nodes[limited.length].requestFocus();
       }
-
       return;
     }
-
-    // ========================================================
-    // INPUT SATU DIGIT
-    // ========================================================
 
     if (digits.isEmpty) {
       controllers[index].clear();
     } else {
       controllers[index].text = digits[0];
-
       if (index < otpLength - 1) {
         nodes[index + 1].requestFocus();
       } else {
@@ -550,52 +415,36 @@ class _OtpSixDigitFieldState
     _notifyChanged();
   }
 
-  // ============================================================
-  // BUILD OTP UI
-  // ============================================================
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double spacing =
-            constraints.maxWidth < 350
-                ? 5.0
-                : 8.0;
-
+        final double spacing = constraints.maxWidth < 350 ? 4.0 : 8.0;
         final double boxWidth =
-            (constraints.maxWidth -
-                    (spacing * (otpLength - 1))) /
-                otpLength;
+            (constraints.maxWidth - (spacing * (otpLength - 1))) / otpLength;
 
         return Row(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             otpLength,
             (index) {
               return Container(
                 width: boxWidth,
-                height: 60,
+                height: 58,
                 margin: EdgeInsets.only(
-                  right: index == otpLength - 1
-                      ? 0
-                      : spacing,
+                  right: index == otpLength - 1 ? 0 : spacing,
                 ),
                 child: TextField(
                   controller: controllers[index],
                   focusNode: nodes[index],
-                  keyboardType:
-                      TextInputType.number,
-                  textInputAction:
-                      index == otpLength - 1
-                          ? TextInputAction.done
-                          : TextInputAction.next,
+                  keyboardType: TextInputType.number,
+                  textInputAction: index == otpLength - 1
+                      ? TextInputAction.done
+                      : TextInputAction.next,
                   textAlign: TextAlign.center,
                   maxLength: 1,
                   inputFormatters: [
-                    FilteringTextInputFormatter
-                        .digitsOnly,
+                    FilteringTextInputFormatter.digitsOnly,
                   ],
                   style: TextStyle(
                     fontSize: 22,
@@ -622,12 +471,7 @@ class _OtpSixDigitFieldState
                       ),
                     ),
                   ),
-                  onChanged: (value) {
-                    _handleChange(
-                      index,
-                      value,
-                    );
-                  },
+                  onChanged: (value) => _handleChange(index, value),
                 ),
               );
             },
@@ -637,20 +481,14 @@ class _OtpSixDigitFieldState
     );
   }
 
-  // ============================================================
-  // DISPOSE OTP FIELD
-  // ============================================================
-
   @override
   void dispose() {
-    for (final controller in controllers) {
-      controller.dispose();
+    for (final c in controllers) {
+      c.dispose();
     }
-
-    for (final node in nodes) {
-      node.dispose();
+    for (final n in nodes) {
+      n.dispose();
     }
-
     super.dispose();
   }
 }
