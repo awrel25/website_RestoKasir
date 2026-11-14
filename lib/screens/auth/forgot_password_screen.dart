@@ -84,10 +84,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         // =====================================================================
         // METODE 1: RESET PASSWORD MENGGUNAKAN EMAIL LINK
         // =====================================================================
-        await supabase.auth.resetPasswordForEmail(
-          email,
-          redirectTo: recoveryRedirectUrl,
-        );
+        await supabase.auth
+            .resetPasswordForEmail(
+              email,
+              redirectTo: recoveryRedirectUrl,
+            )
+            .timeout(const Duration(seconds: 15));
 
         if (!mounted) return;
         setState(() => sentLinkSuccess = true);
@@ -97,7 +99,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         // =====================================================================
         // METODE 2: RESET PASSWORD MENGGUNAKAN KODE OTP
         // =====================================================================
-        await supabase.auth.resetPasswordForEmail(email);
+        await supabase.auth
+            .resetPasswordForEmail(email)
+            .timeout(const Duration(seconds: 15));
 
         if (!mounted) return;
         showMessage('Kode OTP pemulihan kata sandi telah dikirim ke $email.');
@@ -163,8 +167,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: SafeArea(
         child: ResponsiveAuthLayout(
           bannerTitle: 'Lupa Kata Sandi?',
-          bannerSubtitle:
-              'Pilih metode pemulihan yang paling nyaman bagi Anda untuk mengatur ulang kata sandi RestoKasir dengan aman.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
