@@ -42,16 +42,20 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
-  // Validasi kriteria password
-  bool get hasMinLength => newPassword.length >= 6;
+  // Validasi kriteria password (toleran terhadap whitespace ujung dari auto-suggest keyboard)
+  bool get hasMinLength => newPassword.trim().length >= 6;
   bool get hasLettersAndNumbers =>
-      RegExp(r'[A-Za-z]').hasMatch(newPassword) &&
-      RegExp(r'[0-9]').hasMatch(newPassword);
+      RegExp(r'[A-Za-z]').hasMatch(newPassword.trim()) &&
+      RegExp(r'[0-9]').hasMatch(newPassword.trim());
   bool get passwordsMatch =>
-      newPassword.isNotEmpty && newPassword == confirmPassword;
+      newPassword.trim().isNotEmpty &&
+      (newPassword == confirmPassword ||
+          newPassword.trim() == confirmPassword.trim());
   bool get isFormValid => hasMinLength && hasLettersAndNumbers && passwordsMatch;
 
   Future<void> updatePassword() async {
+    final cleanPassword = newPassword.trim();
+
     if (!isFormValid) {
       if (!hasMinLength) {
         showMessage('Kata sandi harus terdiri dari minimal 6 karakter.');
@@ -77,7 +81,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
       // Update password resmi di Supabase Auth
       await supabase.auth.updateUser(
-        UserAttributes(password: newPassword),
+        UserAttributes(password: cleanPassword),
       );
 
       // Sign out agar sesi recovery selesai dan pengguna masuk dengan kredensial baru
@@ -88,7 +92,20 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       if (!mounted) return;
       setState(() => isSuccess = true);
     } on AuthException catch (e) {
-      showMessage(e.message);
+      final msg = e.message.toLowerCase();
+      if (msg.contains('same_password') ||
+          msg.contains('different from the old') ||
+          msg.contains('should be different')) {
+        showMessage(
+          'Kata sandi baru tidak boleh sama dengan kata sandi lama Anda.',
+        );
+      } else if (msg.contains('session') || msg.contains('user not found')) {
+        showMessage(
+          'Sesi pemulihan kedaluwarsa. Silakan ulangi langkah reset kata sandi.',
+        );
+      } else {
+        showMessage(e.message);
+      }
     } catch (e) {
       showMessage('Gagal memperbarui kata sandi: $e');
     } finally {
