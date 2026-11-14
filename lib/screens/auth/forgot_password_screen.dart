@@ -177,8 +177,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             children: [
               const BrandHeader(
                 title: 'Reset Kata Sandi',
-                subtitle:
-                    'Pilih metode verifikasi untuk mengatur ulang kata sandi akun RestoKasir Anda.',
+                subtitle: 'Pilih metode pemulihan akun Anda.',
               ),
               const SizedBox(height: 24),
               if (!sentLinkSuccess) ...[
@@ -196,22 +195,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   icon: Icons.mail_outline_rounded,
                   keyboardType: TextInputType.emailAddress,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  selectedMethod == 0
-                      ? 'Link reset dengan tombol konfirmasi akan dikirim ke email ini dan dapat dibuka dari perangkat apapun.'
-                      : 'Kode verifikasi OTP 6 digit resmi dari Supabase akan dikirimkan ke email ini.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.muted(context),
-                    height: 1.4,
-                  ),
-                ),
                 const SizedBox(height: 24),
                 PrimaryButton(
                   text: selectedMethod == 0
-                      ? 'Kirim Link Reset via Email'
-                      : 'Kirim Kode OTP via Email',
+                      ? 'Kirim Link'
+                      : 'Kirim Kode OTP',
                   onPressed: loading ? null : handleAction,
                   loading: loading,
                 ),
@@ -249,7 +237,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Kami telah mengirim email pemulihan ke:\n${emailController.text.trim()}\n\nSilakan buka email Anda lalu tekan tombol "RESET PASSWORD" untuk membuat kata sandi baru.',
+                        'Link pemulihan telah dikirim ke:\n${emailController.text.trim()}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppColors.muted(context),

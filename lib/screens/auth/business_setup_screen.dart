@@ -184,7 +184,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                       Center(
                         child: Column(
                           children: [
-                            const AppLogo(size: 64, borderRadius: 18),
+                            const AppLogo(size: 64, borderRadius: 0),
                             const SizedBox(height: 16),
                             Text(
                               'Identitas Usaha',
@@ -198,7 +198,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Lengkapi data restoran Anda sebelum mulai menggunakan aplikasi kasir dan daftar menu.',
+                              'Lengkapi data usaha restoran Anda.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,
@@ -221,7 +221,7 @@ class _BusinessSetupScreenState extends State<BusinessSetupScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                         decoration: _inputDecoration(
-                          hint: 'Contoh: Resto Nusantara Awrel',
+                          hint: 'Nama usaha / resto',
                           icon: Icons.storefront_rounded,
                           isDark: isDark,
                           borderColor: borderColor,

@@ -139,31 +139,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ),
     body: SafeArea(
       child: ResponsiveAuthLayout(
-        bannerTitle: 'Bergabung dengan RestoKasir',
-        bannerSubtitle:
-            'Daftarkan akun Owner, Admin, atau Kasir untuk mengelola operasional dan penjualan restoran kamu secara nyata.',
+        bannerTitle: 'Daftar RestoKasir',
+        bannerSubtitle: 'Sistem POS & Kasir Restoran',
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             const BrandHeader(
-              title: 'Buat akun baru',
-              subtitle:
-                  'Daftar akun kasir, admin, atau owner restoran dalam satu sistem terintegrasi.',
+              title: 'Buat Akun Baru',
+              subtitle: 'Lengkapi data untuk mendaftar.',
               showLogo: false,
             ),
             const SizedBox(height: 24),
             AuthField(
               controller: nameController,
-              label: 'Nama lengkap',
-              hint: 'Nama kamu',
+              label: 'Nama Lengkap',
+              hint: 'Nama lengkap',
               icon: Icons.person_outline_rounded,
             ),
             const SizedBox(height: 14),
             AuthField(
               controller: usernameController,
               label: 'Username',
-              hint: 'contoh: resto_awrel',
+              hint: 'Username',
               icon: Icons.alternate_email_rounded,
             ),
             const SizedBox(height: 14),

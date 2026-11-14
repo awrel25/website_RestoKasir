@@ -94,97 +94,57 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final bgCol = AppColors.bg(context);
-    final cardCol = AppColors.card(context);
-    final borderCol = AppColors.border(context);
-    final textCol = AppColors.text(context);
-    final mutedCol = AppColors.muted(context);
-
     return Scaffold(
-      backgroundColor: bgCol,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth >= 900;
             final isTablet =
                 constraints.maxWidth >= 600 && constraints.maxWidth < 900;
-            final logoSize = isDesktop ? 112.0 : (isTablet ? 96.0 : 80.0);
+            final logoSize = isDesktop ? 160.0 : (isTablet ? 140.0 : 120.0);
 
             return Center(
-              child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      constraints: BoxConstraints(
-                        maxWidth: isDesktop ? 460 : (isTablet ? 400 : 340),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Logo berbentuk kotak tajam tanpa radius curve pada ujungnya
+                      Container(
+                        width: logoSize,
+                        height: logoSize,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.rectangle,
+                        ),
+                        child: Image.asset(
+                          'assets/image/app_logo.jpg',
+                          width: logoSize,
+                          height: logoSize,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Image.asset(
+                            'assets/image/app_logo.png',
+                            width: logoSize,
+                            height: logoSize,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isDesktop ? 40 : 28,
-                        vertical: isDesktop ? 44 : 32,
+                      const SizedBox(height: 32),
+                      // Loading indicator bersih tanpa teks apapun
+                      const SizedBox(
+                        width: 26,
+                        height: 26,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        ),
                       ),
-                      decoration: isDesktop || isTablet
-                          ? BoxDecoration(
-                              color: cardCol,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: borderCol),
-                            )
-                          : null,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AppLogo(
-                            size: logoSize,
-                            borderRadius: logoSize * 0.28,
-                            showShadow: false,
-                          ),
-                          const SizedBox(height: 22),
-                          Text(
-                            'RestoKasir',
-                            style: AppFonts.display(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w800,
-                              color: textCol,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Aplikasi kasir dan pengelolaan restoran',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: isDesktop ? 15 : 13,
-                              color: mutedCol,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 36),
-                          SizedBox(
-                            width: 140,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: LinearProgressIndicator(
-                                backgroundColor: AppColors.surface(context),
-                                color: AppColors.primary,
-                                minHeight: 4,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Text(
-                            'Memuat aplikasi...',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: mutedCol,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
                 ),
               ),

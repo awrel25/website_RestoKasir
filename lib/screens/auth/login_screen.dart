@@ -265,15 +265,14 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: ResponsiveAuthLayout(
           bannerTitle: 'RestoKasir POS',
-          bannerSubtitle:
-              'Masuk untuk memantau pesanan meja, mengelola menu, dan memproses transaksi kasir.',
+          bannerSubtitle: 'Sistem POS & Kasir Restoran',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               const BrandHeader(
                 title: 'Masuk ke Akun',
-                subtitle: 'Gunakan akun staf atau pengelola restoran Anda.',
+                subtitle: 'Silakan masuk ke akun Anda.',
                 showLogo: true,
               ),
               const SizedBox(height: 24),
@@ -283,7 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
               AuthField(
                 controller: emailController,
-                label: 'Email atau Username',
+                label: 'Email',
                 hint: 'nama@email.com',
                 icon: Icons.person_outline_rounded,
                 keyboardType: TextInputType.emailAddress,
@@ -302,7 +301,7 @@ class _LoginScreenState extends State<LoginScreen> {
               AuthField(
                 controller: passwordController,
                 label: 'Password',
-                hint: 'Masukkan password',
+                hint: 'Password',
                 icon: Icons.lock_outline_rounded,
                 obscureText: obscurePassword,
                 textInputAction: TextInputAction.done,

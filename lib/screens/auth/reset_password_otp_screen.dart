@@ -230,16 +230,15 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
       ),
       body: SafeArea(
         child: ResponsiveAuthLayout(
-          bannerTitle: 'Verifikasi Kode OTP',
-          bannerSubtitle:
-              'Masukkan kode verifikasi 6 digit yang dikirimkan ke email akun Anda.',
+          bannerTitle: 'Verifikasi OTP',
+          bannerSubtitle: 'Verifikasi identitas akun Anda.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               const BrandHeader(
-                title: 'Verifikasi Kode OTP',
-                subtitle: 'Masukkan 6 digit kode OTP yang telah dikirim ke:',
+                title: 'Verifikasi OTP',
+                subtitle: 'Masukkan kode OTP yang dikirim ke:',
               ),
               const SizedBox(height: 8),
               Container(
@@ -282,13 +281,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Kode OTP resmi Supabase (6 digit)',
-                    style: TextStyle(
-                      color: AppColors.muted(context),
-                      fontSize: 12,
-                    ),
-                  ),
+                  const SizedBox(),
                   if (remainingAttempts < 5)
                     Text(
                       'Sisa coba: $remainingAttempts',
@@ -341,7 +334,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Kirim ulang kode dalam $countdownSeconds detik',
+                            'Kirim ulang ($countdownSeconds s)',
                             style: TextStyle(
                               color: AppColors.muted(context),
                               fontSize: 13,

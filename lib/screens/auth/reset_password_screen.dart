@@ -174,16 +174,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       body: SafeArea(
         child: ResponsiveAuthLayout(
           bannerTitle: 'Atur Ulang Kata Sandi',
-          bannerSubtitle:
-              'Buat kata sandi baru yang aman untuk melindungi akun RestoKasir Anda.',
+          bannerSubtitle: 'Atur ulang kata sandi akun Anda.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               const BrandHeader(
                 title: 'Buat Kata Sandi Baru',
-                subtitle:
-                    'Masukkan kata sandi baru yang kuat untuk akun RestoKasir Anda.',
+                subtitle: 'Masukkan kata sandi baru Anda.',
               ),
               if (displayEmail != null && displayEmail.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -209,7 +207,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 AuthField(
                   controller: newPasswordController,
                   label: 'Password Baru',
-                  hint: 'Minimal 6 karakter kombinasi huruf & angka',
+                  hint: 'Kata sandi baru',
                   icon: Icons.lock_outline_rounded,
                   obscureText: hideNewPassword,
                   suffix: IconButton(
@@ -228,8 +226,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 const SizedBox(height: 16),
                 AuthField(
                   controller: confirmPasswordController,
-                  label: 'Konfirmasi Password Baru',
-                  hint: 'Ketik ulang password baru Anda',
+                  label: 'Konfirmasi Password',
+                  hint: 'Ketik ulang kata sandi',
                   icon: Icons.lock_reset_rounded,
                   obscureText: hideConfirmPassword,
                   suffix: IconButton(

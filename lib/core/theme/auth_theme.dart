@@ -20,25 +20,28 @@ class AppLogo extends StatelessWidget {
   final double size;
   final double borderRadius;
   final bool showShadow;
+  final Color? backgroundColor;
 
   const AppLogo({
     super.key,
     this.size = 64,
-    this.borderRadius = 16,
+    this.borderRadius = 0,
     this.showShadow = false,
+    this.backgroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final borderCol = AppColors.border(context);
+    final hasRadius = borderRadius > 0;
 
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: borderCol, width: 1),
+        color: backgroundColor ?? Colors.white,
+        borderRadius: hasRadius ? BorderRadius.circular(borderRadius) : BorderRadius.zero,
+        border: hasRadius ? Border.all(color: borderCol, width: 1) : null,
         boxShadow: showShadow
             ? [
                 BoxShadow(
@@ -50,14 +53,20 @@ class AppLogo extends StatelessWidget {
             : null,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius - 1),
+        borderRadius: hasRadius
+            ? BorderRadius.circular((borderRadius - 1).clamp(0.0, double.infinity))
+            : BorderRadius.zero,
         child: Image.asset(
           'assets/image/app_logo.jpg',
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Icon(
-            Icons.storefront_rounded,
-            color: Colors.white,
-            size: size * 0.48,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => Image.asset(
+            'assets/image/app_logo.png',
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              Icons.storefront_rounded,
+              color: AppColors.primary,
+              size: size * 0.48,
+            ),
           ),
         ),
       ),
@@ -92,7 +101,7 @@ class BrandHeader extends StatelessWidget {
         if (shouldShowLogo) ...[
           Row(
             children: [
-              AppLogo(size: logoSize, borderRadius: logoSize * 0.25),
+              AppLogo(size: logoSize, borderRadius: 0),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +246,7 @@ class ResponsiveAuthLayout extends StatelessWidget {
                             children: [
                               const AppLogo(
                                 size: 48,
-                                borderRadius: 12,
+                                borderRadius: 0,
                                 showShadow: false,
                               ),
                               const SizedBox(height: 24),
