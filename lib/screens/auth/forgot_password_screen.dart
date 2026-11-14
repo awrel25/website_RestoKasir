@@ -97,14 +97,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         showMessage('Link pemulihan kata sandi berhasil dikirim ke email Anda.');
       } else {
         // =====================================================================
-        // METODE 2: RESET PASSWORD MENGGUNAKAN KODE OTP
+        // METODE 2: RESET PASSWORD MENGGUNAKAN KODE OTP (Template Magic Link / OTP)
+        // Mengirimkan email yang KHUSUS berisi 6-digit kode OTP (tanpa link tombol web)
         // =====================================================================
         await supabase.auth
-            .resetPasswordForEmail(email)
+            .signInWithOtp(
+              email: email,
+              shouldCreateUser: false,
+            )
             .timeout(const Duration(seconds: 15));
 
         if (!mounted) return;
-        showMessage('Kode OTP pemulihan kata sandi telah dikirim ke $email.');
+        showMessage('Kode OTP 6-digit telah dikirimkan ke $email.');
 
         Navigator.push(
           context,

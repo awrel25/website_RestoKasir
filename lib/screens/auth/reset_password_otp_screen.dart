@@ -75,7 +75,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
   }
 
   // ============================================================
-  // RESEND OTP DENGAN SUPABASE AUTH
+  // RESEND OTP DENGAN SUPABASE AUTH (Template Magic Link / OTP)
   // ============================================================
 
   Future<void> resendOtp() async {
@@ -84,7 +84,12 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
     setState(() => loading = true);
 
     try {
-      await supabase.auth.resetPasswordForEmail(widget.email);
+      await supabase.auth
+          .signInWithOtp(
+            email: widget.email,
+            shouldCreateUser: false,
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (!mounted) return;
 
@@ -100,6 +105,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
       if (msg.contains('sending recovery email') ||
+          msg.contains('sending magic link email') ||
           msg.contains('unexpected_failure') ||
           msg.contains('error sending')) {
         showMessage(
@@ -118,7 +124,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
   }
 
   // ============================================================
-  // VERIFIKASI OTP RESMI SUPABASE (OtpType.recovery)
+  // VERIFIKASI OTP RESMI SUPABASE (OtpType.email / OtpType.recovery)
   // ============================================================
 
   Future<void> verifyOtp() async {
@@ -137,14 +143,25 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
     setState(() => loading = true);
 
     try {
-      final response = await supabase.auth.verifyOTP(
-        email: widget.email,
-        token: token,
-        type: OtpType.recovery,
-      );
+      // Prioritaskan verifikasi OtpType.email (dari signInWithOtp),
+      // dengan fallback ke OtpType.recovery jika menggunakan alur recovery email.
+      AuthResponse? response;
+      try {
+        response = await supabase.auth.verifyOTP(
+          email: widget.email,
+          token: token,
+          type: OtpType.email,
+        );
+      } catch (e) {
+        response = await supabase.auth.verifyOTP(
+          email: widget.email,
+          token: token,
+          type: OtpType.recovery,
+        );
+      }
 
       if (response.session == null) {
-        throw const AuthException('Sesi pemulihan gagal dibentuk oleh server.');
+        throw const AuthException('Sesi verifikasi gagal dibentuk oleh server.');
       }
 
       if (!mounted) return;
