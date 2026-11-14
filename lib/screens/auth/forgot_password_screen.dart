@@ -113,9 +113,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
-      if (msg.contains('rate limit') || msg.contains('over_email_send_rate_limit')) {
+      if (msg.contains('sending recovery email') ||
+          msg.contains('sending magic link email') ||
+          msg.contains('unexpected_failure') ||
+          msg.contains('error sending')) {
         showMessage(
-          'Batas pengiriman email Supabase tercapai. Silakan tunggu beberapa saat atau gunakan metode alternatif.',
+          'Server email Supabase gagal mengirim: Kuota email gratis Supabase (3 email/jam) telah tercapai atau Custom SMTP belum diaktifkan di Supabase Dashboard.',
+        );
+      } else if (msg.contains('rate limit') || msg.contains('over_email_send_rate_limit')) {
+        showMessage(
+          'Batas frekuensi pengiriman email tercapai. Silakan tunggu beberapa saat sebelum mencoba kembali.',
         );
       } else if (msg.contains('user not found') || msg.contains('email not found')) {
         showMessage(

@@ -99,7 +99,13 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
       otpFocusNode.requestFocus();
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
-      if (msg.contains('rate limit')) {
+      if (msg.contains('sending recovery email') ||
+          msg.contains('unexpected_failure') ||
+          msg.contains('error sending')) {
+        showMessage(
+          'Server email Supabase gagal mengirim: Kuota email gratis Supabase (3 email/jam) habis atau Custom SMTP belum aktif.',
+        );
+      } else if (msg.contains('rate limit')) {
         showMessage('Batas pengiriman OTP tercapai. Harap tunggu beberapa menit.');
       } else {
         showMessage(e.message);
