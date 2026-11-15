@@ -140,13 +140,16 @@ class _AdminScreenState extends State<AdminScreen>
 
   List<double> get _last7DaysSales {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final List<double> result = List.filled(7, 0.0);
 
     for (final order in _orders) {
       final s = order.status.toLowerCase();
       if (s != 'pesanan selesai' && s != 'selesai') continue;
 
-      final diff = now.difference(order.createdAt).inDays;
+      final localDate = order.createdAt.toLocal();
+      final orderDay = DateTime(localDate.year, localDate.month, localDate.day);
+      final diff = today.difference(orderDay).inDays;
       if (diff >= 0 && diff < 7) {
         final idx = 6 - diff;
         result[idx] += (order.total / 1000.0);
@@ -1078,22 +1081,6 @@ class _AdminScreenState extends State<AdminScreen>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (p.description != null &&
-                                p.description!.trim().isNotEmpty) ...[
-                              const SizedBox(height: 3),
-                              Text(
-                                p.description!.trim(),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontStyle: FontStyle.italic,
-                                  color: isDark
-                                      ? AppColors.darkMuted.withAlpha(200)
-                                      : AppColors.lightMuted.withAlpha(220),
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
                             const SizedBox(height: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -1128,7 +1115,7 @@ class _AdminScreenState extends State<AdminScreen>
                           IconButton(
                             visualDensity: VisualDensity.compact,
                             icon: const Icon(Icons.edit_outlined, size: 20),
-                            tooltip: 'Ubah Data & Deskripsi',
+                            tooltip: 'Ubah Data Produk',
                             onPressed: () {
                               Navigator.push(
                                 context,

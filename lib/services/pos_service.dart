@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:my_app/models/models.dart';
@@ -310,7 +309,6 @@ class PosService {
         .from('products')
         .update(payload)
         .eq('id', productId);
-  }
   }
 
   Future<void> updateProductStock(String productId, int newStock) async {
