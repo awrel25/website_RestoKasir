@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => BusinessSetupScreen(
-            initialOwnerName: resolution.ownerName,
+            initialAdminName: resolution.adminName,
           ),
         ),
       );

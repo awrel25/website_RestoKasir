@@ -16,15 +16,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  String selectedRole = 'kasir'; // 'kasir', 'admin', 'owner'
   bool hidePassword = true;
   bool loading = false;
-
-  final Map<String, String> roleLabels = {
-    'kasir': 'Kasir (Operator POS)',
-    'admin': 'Admin (Manajer Resto & Stok)',
-    'owner': 'Owner (Pemilik & Laporan Keuangan)',
-  };
 
   Future<void> register() async {
     final name = nameController.text.trim();
@@ -50,7 +43,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         data: {
           'full_name': name,
           'username': username,
-          'role': selectedRole,
         },
       );
 
@@ -67,16 +59,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
 
-      // Karena "Confirm email" sudah dinonaktifkan di Supabase,
-      // akun langsung aktif dan profil langsung disimpan ke tabel profiles:
       try {
         await supabase.from('profiles').upsert({
           'id': user.id,
           'full_name': name,
           'email': email,
-          'role': selectedRole,
+          'role': 'kasir',
           'resto_id': null,
         });
+
+        // Klaim undangan jika sebelumnya sudah diundang oleh Admin restoran
+        try {
+          await supabase.rpc('claim_staff_invitation', params: {
+            'p_user_id': user.id,
+            'p_email': email,
+          });
+        } catch (_) {}
       } catch (profileError) {
         debugPrint('Catatan upsert profiles saat register: $profileError');
       }
@@ -86,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      showMessage('Akun ${roleLabels[selectedRole]} berhasil dibuat! Silakan masuk.');
+      showMessage('Akun berhasil dibuat! Silakan masuk.');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -173,57 +171,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 14),
-            // Role Selector Dropdown
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Peran Akun',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.text(context),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border(context)),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedRole,
-                      isExpanded: true,
-                      dropdownColor: AppColors.card(context),
-                      icon: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.primary,
-                      ),
-                      items: roleLabels.entries.map((entry) {
-                        return DropdownMenuItem<String>(
-                          value: entry.key,
-                          child: Text(
-                            entry.value,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.text(context),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setState(() => selectedRole = val);
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
             AuthField(
               controller: passwordController,
               label: 'Password',
@@ -241,7 +188,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 24),
             PrimaryButton(
-              text: 'Daftar Akun ${selectedRole.toUpperCase()}',
+              text: 'Daftar Akun RestoKasir',
               onPressed: loading ? null : register,
               loading: loading,
             ),

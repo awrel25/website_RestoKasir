@@ -121,10 +121,11 @@ class _ProfileScreenState extends State<ProfileScreen>
   void initState() {
     super.initState();
     _currentProfile = widget.userProfile;
+    final tabCount = _currentProfile.isAdmin ? 5 : 4;
     _tabController = TabController(
-      length: 5,
+      length: tabCount,
       vsync: this,
-      initialIndex: widget.initialTabIndex.clamp(0, 4),
+      initialIndex: widget.initialTabIndex.clamp(0, tabCount - 1),
     );
 
     _nameController = TextEditingController(text: _currentProfile.fullName);
@@ -180,13 +181,15 @@ class _ProfileScreenState extends State<ProfileScreen>
       DbAttendance? today;
       List<DbAttendance> history = [];
 
-      if (_selectedEmployeeForAttendance != null) {
+      final effectiveSelected =
+          _currentProfile.isAdmin ? _selectedEmployeeForAttendance : null;
+      if (effectiveSelected != null) {
         today = await _posService.fetchTodayAttendance(
           null,
-          _selectedEmployeeForAttendance!.id,
+          effectiveSelected.id,
         );
         history = await _posService.fetchUserAttendanceHistory(
-          _selectedEmployeeForAttendance!.id,
+          effectiveSelected.id,
         );
       } else {
         today = await _posService.fetchTodayAttendance(_currentProfile.id);
@@ -603,14 +606,15 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _handleClockIn() async {
     setState(() => _isClocking = true);
     try {
-      final isEmp = _selectedEmployeeForAttendance != null;
+      final effectiveSelected = _currentProfile.isAdmin ? _selectedEmployeeForAttendance : null;
+      final isEmp = effectiveSelected != null;
       final targetUserId = isEmp ? null : _currentProfile.id;
-      final targetEmpId = isEmp ? _selectedEmployeeForAttendance!.id : null;
+      final targetEmpId = isEmp ? effectiveSelected.id : null;
       final targetName = isEmp
-          ? _selectedEmployeeForAttendance!.name
+          ? effectiveSelected.name
           : _currentProfile.fullName;
       final targetRole = isEmp
-          ? _selectedEmployeeForAttendance!.role
+          ? effectiveSelected.role
           : _currentProfile.role;
 
       final newAtt = await _posService.clockInAttendance(
@@ -742,6 +746,13 @@ class _ProfileScreenState extends State<ProfileScreen>
   // KELOLA KARYAWAN RESTORAN
   // ---------------------------------------------------------------------------
   void _openAddEmployeeDialog([DbEmployee? editEmp]) {
+    if (!_currentProfile.isAdmin) {
+      _showSnackbar(
+        'Akses ditolak: Hanya ADMIN yang dapat mengelola karyawan.',
+        isError: true,
+      );
+      return;
+    }
     final nameCtrl = TextEditingController(text: editEmp?.name ?? '');
     final phoneCtrl = TextEditingController(text: editEmp?.phone ?? '');
     final emailCtrl = TextEditingController(text: editEmp?.email ?? '');
@@ -988,6 +999,13 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _deleteEmployee(DbEmployee emp) async {
+    if (!_currentProfile.isAdmin) {
+      _showSnackbar(
+        'Akses ditolak: Hanya ADMIN yang dapat menghapus karyawan.',
+        isError: true,
+      );
+      return;
+    }
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1512,24 +1530,25 @@ class _ProfileScreenState extends State<ProfileScreen>
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
-                  tabs: const [
-                    Tab(
+                  tabs: [
+                    const Tab(
                       icon: Icon(Icons.timer_outlined, size: 20),
                       text: 'Absensi',
                     ),
-                    Tab(
-                      icon: Icon(Icons.badge_outlined, size: 20),
-                      text: 'Kelola Karyawan',
-                    ),
-                    Tab(
+                    if (_currentProfile.isAdmin)
+                      const Tab(
+                        icon: Icon(Icons.badge_outlined, size: 20),
+                        text: 'Kelola Karyawan',
+                      ),
+                    const Tab(
                       icon: Icon(Icons.person_outline_rounded, size: 20),
                       text: 'Edit Profil',
                     ),
-                    Tab(
+                    const Tab(
                       icon: Icon(Icons.security_rounded, size: 20),
                       text: 'Keamanan Sandi',
                     ),
-                    Tab(
+                    const Tab(
                       icon: Icon(Icons.settings_outlined, size: 20),
                       text: 'Preferensi',
                     ),
@@ -1551,7 +1570,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               controller: _tabController,
               children: [
                 _buildAttendanceTab(isDark, phone),
-                _buildEmployeesTab(isDark, phone),
+                if (_currentProfile.isAdmin)
+                  _buildEmployeesTab(isDark, phone),
                 _buildEditProfileTab(isDark, phone),
                 _buildSecurityTab(isDark, phone),
                 _buildPreferencesTab(isDark, phone),
@@ -2146,6 +2166,76 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   // WIDGET KARTU PEMILIH KARYAWAN
   Widget _buildEmployeeSelectorCard(bool isDark, bool isPhone) {
+    if (!_currentProfile.isAdmin) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.primary.withAlpha(25),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _currentProfile.fullName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Kasir Restoran • Absensi Kehadiran Mandiri',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark
+                            ? AppColors.darkMuted
+                            : AppColors.lightMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.statusCompleted.withAlpha(25),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'KASIR AKTIF',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.statusCompleted,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(

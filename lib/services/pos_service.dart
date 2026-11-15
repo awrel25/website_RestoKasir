@@ -31,6 +31,21 @@ class PosService {
     try {
       final user = supabase.auth.currentUser;
       if (user != null) {
+        // 1. Cek dari keanggotaan aktif di restaurant_members
+        try {
+          final member = await supabase
+              .from('restaurant_members')
+              .select('restaurant_id')
+              .eq('user_id', user.id)
+              .eq('status', 'ACTIVE')
+              .maybeSingle();
+          if (member != null && member['restaurant_id'] != null) {
+            final rid = member['restaurant_id'].toString().trim();
+            if (rid.isNotEmpty) return rid;
+          }
+        } catch (_) {}
+
+        // 2. Cek dari profiles
         final profile = await supabase
             .from('profiles')
             .select('resto_id')
@@ -38,6 +53,17 @@ class PosService {
             .maybeSingle();
         if (profile != null && profile['resto_id'] != null) {
           final rid = profile['resto_id'].toString().trim();
+          if (rid.isNotEmpty) return rid;
+        }
+
+        // 3. Cek dari restoran milik user (pembuat / Admin)
+        final resto = await supabase
+            .from('restaurants')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+        if (resto != null && resto['id'] != null) {
+          final rid = resto['id'].toString().trim();
           if (rid.isNotEmpty) return rid;
         }
       }
@@ -71,8 +97,26 @@ class PosService {
   }
 
   // -------------------------------------------------------------
-  // EMPLOYEES (KELOLA KARYAWAN)
+  // EMPLOYEES & RESTAURANT MEMBERS
   // -------------------------------------------------------------
+  Future<List<RestaurantMember>> fetchRestaurantMembers() async {
+    try {
+      final rid = await fetchRestaurantId();
+      if (rid == null) return [];
+      final List<dynamic> res = await supabase
+          .from('restaurant_members')
+          .select('*')
+          .eq('restaurant_id', rid)
+          .order('created_at', ascending: false);
+      return res
+          .map((e) => RestaurantMember.fromMap(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('Error fetching restaurant members: $e');
+      return [];
+    }
+  }
+
   Future<List<DbEmployee>> fetchEmployees() async {
     try {
       final rid = await fetchRestaurantId();
@@ -97,12 +141,38 @@ class PosService {
     String shift = 'Shift Pagi',
   }) async {
     final restoId = await fetchRestaurantId();
+    final cleanEmail = email?.trim().toLowerCase();
+
+    // Jika email diisi, otomatis buat undangan KASIR di restaurant_members
+    if (cleanEmail != null && cleanEmail.isNotEmpty) {
+      try {
+        await supabase.rpc('invite_staff_member', params: {
+          'p_email': cleanEmail,
+          'p_name': name.trim(),
+          'p_shift': shift,
+          'p_phone': phone?.trim(),
+        });
+      } catch (e) {
+        debugPrint('Catatan RPC invite_staff_member fallback: $e');
+        try {
+          if (restoId != null) {
+            await supabase.from('restaurant_members').upsert({
+              'restaurant_id': restoId,
+              'role': 'KASIR',
+              'status': 'INVITED',
+              'invited_email': cleanEmail,
+            }, onConflict: 'restaurant_id,invited_email');
+          }
+        } catch (_) {}
+      }
+    }
+
     final payload = {
       'resto_id': restoId,
       'name': name.trim(),
       'role': role.trim(),
       'phone': phone?.trim().isNotEmpty == true ? phone!.trim() : null,
-      'email': email?.trim().isNotEmpty == true ? email!.trim() : null,
+      'email': cleanEmail?.isNotEmpty == true ? cleanEmail : null,
       'shift': shift,
       'is_active': true,
     };

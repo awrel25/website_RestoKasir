@@ -13,15 +13,18 @@ class OnboardingResult {
   final OnboardingStatus status;
   final UserProfile? profile;
   final String? restoId;
-  final String? ownerName;
+  final String? adminName;
+  final RestaurantMember? membership;
 
   const OnboardingResult({
     required this.status,
     this.profile,
     this.restoId,
-    this.ownerName,
+    this.adminName,
+    this.membership,
   });
 
+  String? get ownerName => adminName;
   bool get hasRestaurant => status == OnboardingStatus.readyForDashboard;
 }
 
@@ -40,7 +43,14 @@ abstract class OnboardingStore {
 
   Future<bool> restaurantExists(String restoId);
 
-  Future<void> linkProfileToRestaurant(String userId, String restoId);
+  Future<void> linkProfileToRestaurant(String userId, String restoId, {String? role});
+
+  Future<RestaurantMember?> fetchActiveMembership(String userId);
+
+  Future<RestaurantMember?> checkAndClaimInvitation({
+    required String userId,
+    required String email,
+  });
 
   Future<String> upsertRestaurantForUser({
     required String userId,
@@ -199,11 +209,104 @@ class SupabaseOnboardingStore implements OnboardingStore {
   }
 
   @override
-  Future<void> linkProfileToRestaurant(String userId, String restoId) async {
+  Future<void> linkProfileToRestaurant(
+    String userId,
+    String restoId, {
+    String? role,
+  }) async {
+    final updates = <String, dynamic>{'resto_id': restoId};
+    if (role != null) updates['role'] = role.toLowerCase();
     await _supabase
         .from('profiles')
-        .update({'resto_id': restoId})
+        .update(updates)
         .eq('id', userId);
+  }
+
+  @override
+  Future<RestaurantMember?> fetchActiveMembership(String userId) async {
+    try {
+      final res = await _supabase
+          .from('restaurant_members')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('status', 'ACTIVE')
+          .maybeSingle();
+      if (res != null) {
+        return RestaurantMember.fromMap(res);
+      }
+    } catch (e) {
+      debugPrint('Catatan fetchActiveMembership: $e');
+    }
+    return null;
+  }
+
+  @override
+  Future<RestaurantMember?> checkAndClaimInvitation({
+    required String userId,
+    required String email,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail.isEmpty) return null;
+
+    try {
+      final rpcRes = await _supabase.rpc(
+        'claim_staff_invitation',
+        params: {
+          'p_user_id': userId,
+          'p_email': cleanEmail,
+        },
+      );
+      if (rpcRes is Map && rpcRes['claimed'] == true) {
+        final restoId = rpcRes['restaurant_id']?.toString() ?? '';
+        return RestaurantMember(
+          id: rpcRes['member_id']?.toString() ?? 'claimed',
+          userId: userId,
+          restaurantId: restoId,
+          role: 'KASIR',
+          status: 'ACTIVE',
+          invitedEmail: cleanEmail,
+          createdAt: DateTime.now(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Catatan RPC claim_staff_invitation: $e');
+    }
+
+    try {
+      final List<dynamic> rows = await _supabase
+          .from('restaurant_members')
+          .select('*')
+          .eq('status', 'INVITED')
+          .ilike('invited_email', cleanEmail)
+          .order('created_at', ascending: false)
+          .limit(1);
+
+      if (rows.isNotEmpty && rows.first is Map) {
+        final inv = Map<String, dynamic>.from(rows.first as Map);
+        final memberId = inv['id'].toString();
+        final restoId = inv['restaurant_id'].toString();
+
+        await _supabase.from('restaurant_members').update({
+          'user_id': userId,
+          'status': 'ACTIVE',
+          'role': 'KASIR',
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', memberId);
+
+        await linkProfileToRestaurant(userId, restoId, role: 'kasir');
+
+        return RestaurantMember.fromMap({
+          ...inv,
+          'user_id': userId,
+          'status': 'ACTIVE',
+          'role': 'KASIR',
+        });
+      }
+    } catch (e) {
+      debugPrint('Catatan fallback manual claim invitation: $e');
+    }
+
+    return null;
   }
 
   Future<void> _seedDefaultTablesBestEffort(String restoId) async {
@@ -308,7 +411,19 @@ class SupabaseOnboardingStore implements OnboardingStore {
         }
       }
 
-      await linkProfileToRestaurant(userId, existingRestoId);
+      try {
+        await _supabase.from('restaurant_members').upsert({
+          'user_id': userId,
+          'restaurant_id': existingRestoId,
+          'role': 'ADMIN',
+          'status': 'ACTIVE',
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'user_id,restaurant_id');
+      } catch (e) {
+        debugPrint('Catatan upsert restaurant_members existing: $e');
+      }
+
+      await linkProfileToRestaurant(userId, existingRestoId, role: 'admin');
       return existingRestoId;
     }
 
@@ -342,7 +457,19 @@ class SupabaseOnboardingStore implements OnboardingStore {
       }
     }
 
-    await linkProfileToRestaurant(userId, createdId);
+    try {
+      await _supabase.from('restaurant_members').upsert({
+        'user_id': userId,
+        'restaurant_id': createdId,
+        'role': 'ADMIN',
+        'status': 'ACTIVE',
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'user_id,restaurant_id');
+    } catch (e) {
+      debugPrint('Catatan upsert restaurant_members created: $e');
+    }
+
+    await linkProfileToRestaurant(userId, createdId, role: 'admin');
     await _seedDefaultTablesBestEffort(createdId);
     return createdId;
   }
@@ -369,15 +496,15 @@ class AuthOnboardingService {
     }
 
     final metadata = userMetadata ?? const <String, dynamic>{};
-    final effectiveEmail = (email ?? fallbackEmail ?? '').trim();
+    final effectiveEmail = (email ?? fallbackEmail ?? '').trim().toLowerCase();
     final effectiveName = _pickDisplayName(
       metadata: metadata,
       fallbackName: fallbackName,
       email: effectiveEmail,
     );
-    final defaultRole = (metadata['role']?.toString().trim().isNotEmpty == true)
-        ? metadata['role'].toString().trim().toLowerCase()
-        : 'kasir';
+
+    // Default role untuk profil: 'kasir'
+    final defaultRole = 'kasir';
 
     var profile = await _store.ensureProfile(
       userId: trimmedUid,
@@ -386,36 +513,73 @@ class AuthOnboardingService {
       defaultRole: defaultRole,
     );
 
-    final profileRestoId = profile.restoId?.trim();
-    if (profileRestoId != null && profileRestoId.isNotEmpty) {
-      final exists = await _store.restaurantExists(profileRestoId);
-      if (exists) {
-        return OnboardingResult(
-          status: OnboardingStatus.readyForDashboard,
-          profile: profile,
-          restoId: profileRestoId,
-          ownerName: profile.fullName,
-        );
-      }
+    // 1. Cek apakah ada undangan staf (KASIR) yang belum diklaim untuk email ini
+    final claimed = await _store.checkAndClaimInvitation(
+      userId: trimmedUid,
+      email: effectiveEmail,
+    );
+    if (claimed != null && claimed.isActive) {
+      profile = profile.copyWith(restoId: claimed.restaurantId, role: 'kasir');
+      return OnboardingResult(
+        status: OnboardingStatus.readyForDashboard,
+        profile: profile,
+        restoId: claimed.restaurantId,
+        adminName: profile.fullName,
+        membership: claimed,
+      );
     }
 
+    // 2. Cek keanggotaan aktif di tabel restaurant_members
+    final membership = await _store.fetchActiveMembership(trimmedUid);
+    if (membership != null && membership.isActive) {
+      final targetRole = membership.isAdmin ? 'admin' : 'kasir';
+      if (profile.restoId != membership.restaurantId || profile.role != targetRole) {
+        await _store.linkProfileToRestaurant(trimmedUid, membership.restaurantId, role: targetRole);
+        profile = profile.copyWith(restoId: membership.restaurantId, role: targetRole);
+      }
+      return OnboardingResult(
+        status: OnboardingStatus.readyForDashboard,
+        profile: profile,
+        restoId: membership.restaurantId,
+        adminName: profile.fullName,
+        membership: membership,
+      );
+    }
+
+    // 3. Fallback jika restaurant_members belum terisi: Cek apakah user adalah pembuat/pemilik restoran (ADMIN)
     final ownedRestoId = await _store.findOwnedRestaurantId(trimmedUid);
     if (ownedRestoId != null && ownedRestoId.isNotEmpty) {
-      await _store.linkProfileToRestaurant(trimmedUid, ownedRestoId);
-      profile = profile.copyWith(restoId: ownedRestoId);
+      await _store.linkProfileToRestaurant(trimmedUid, ownedRestoId, role: 'admin');
+      profile = profile.copyWith(restoId: ownedRestoId, role: 'admin');
       return OnboardingResult(
         status: OnboardingStatus.readyForDashboard,
         profile: profile,
         restoId: ownedRestoId,
-        ownerName: profile.fullName,
+        adminName: profile.fullName,
       );
     }
 
+    // 4. Cek profil jika resto_id sudah tersimpan di profiles dan restorannya ada
+    final profileRestoId = profile.restoId?.trim();
+    if (profileRestoId != null && profileRestoId.isNotEmpty) {
+      final exists = await _store.restaurantExists(profileRestoId);
+      if (exists) {
+        final targetRole = profile.isAdmin ? 'admin' : 'kasir';
+        return OnboardingResult(
+          status: OnboardingStatus.readyForDashboard,
+          profile: profile.copyWith(role: targetRole),
+          restoId: profileRestoId,
+          adminName: profile.fullName,
+        );
+      }
+    }
+
+    // 5. Belum memiliki restoran dan tidak ada undangan aktif: Pengguna diarahkan ke setup resto (sebagai Admin)
     return OnboardingResult(
       status: OnboardingStatus.needsBusinessSetup,
       profile: profile,
       restoId: null,
-      ownerName: profile.fullName.isNotEmpty ? profile.fullName : effectiveName,
+      adminName: profile.fullName.isNotEmpty ? profile.fullName : effectiveName,
     );
   }
 

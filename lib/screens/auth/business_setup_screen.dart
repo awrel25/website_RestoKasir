@@ -15,12 +15,14 @@ typedef SaveRestaurantCallback = Future<String> Function({
 });
 
 class BusinessSetupScreen extends StatefulWidget {
+  final String? initialAdminName;
   final String? initialOwnerName;
   final SaveRestaurantCallback? onSaveRestaurant;
   final VoidCallback? onSavedNavigate;
 
   const BusinessSetupScreen({
     super.key,
+    this.initialAdminName,
     this.initialOwnerName,
     this.onSaveRestaurant,
     this.onSavedNavigate,

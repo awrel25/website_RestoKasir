@@ -68,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           context,
           MaterialPageRoute(
             builder: (_) => BusinessSetupScreen(
-              initialOwnerName: resolution.ownerName,
+              initialAdminName: resolution.adminName,
             ),
           ),
         );

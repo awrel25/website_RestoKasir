@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum UserRole { kasir, admin, owner }
+enum UserRole { kasir, admin }
 
 class DbProduct {
   final String id;
@@ -251,7 +251,7 @@ class UserProfile {
   final String id;
   final String fullName;
   final String email;
-  final String role; // 'admin', 'kasir', 'owner'
+  final String role; // 'admin' atau 'kasir'
   final String? restoId;
   final String? avatarUrl;
   final String? phone;
@@ -267,11 +267,13 @@ class UserProfile {
   });
 
   factory UserProfile.fromMap(Map<String, dynamic> map) {
+    final rawRole = (map['role']?.toString() ?? 'kasir').toLowerCase().trim();
+    final normalizedRole = (rawRole == 'admin' || rawRole == 'owner') ? 'admin' : 'kasir';
     return UserProfile(
       id: map['id']?.toString() ?? '',
       fullName: map['full_name']?.toString() ?? 'Pengguna',
       email: map['email']?.toString() ?? '',
-      role: (map['role']?.toString() ?? 'kasir').toLowerCase(),
+      role: normalizedRole,
       restoId: map['resto_id']?.toString(),
       avatarUrl: map['avatar_url']?.toString(),
       phone: map['phone']?.toString(),
@@ -304,8 +306,49 @@ class UserProfile {
     return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
   }
 
-  bool get isAdmin => role == 'admin' || role == 'owner';
+  bool get isAdmin => role == 'admin';
   bool get isKasir => role == 'kasir';
+}
+
+class RestaurantMember {
+  final String id;
+  final String? userId;
+  final String restaurantId;
+  final String role; // 'ADMIN' atau 'KASIR'
+  final String status; // 'ACTIVE', 'INVITED', 'INACTIVE'
+  final String? invitedEmail;
+  final DateTime createdAt;
+
+  RestaurantMember({
+    required this.id,
+    this.userId,
+    required this.restaurantId,
+    required this.role,
+    this.status = 'ACTIVE',
+    this.invitedEmail,
+    required this.createdAt,
+  });
+
+  factory RestaurantMember.fromMap(Map<String, dynamic> map) {
+    final rawRole = map['role']?.toString().toUpperCase().trim() ?? 'KASIR';
+    final normalizedRole = (rawRole == 'ADMIN' || rawRole == 'OWNER') ? 'ADMIN' : 'KASIR';
+    return RestaurantMember(
+      id: map['id']?.toString() ?? '',
+      userId: map['user_id']?.toString(),
+      restaurantId: map['restaurant_id']?.toString() ?? '',
+      role: normalizedRole,
+      status: map['status']?.toString().toUpperCase() ?? 'ACTIVE',
+      invitedEmail: map['invited_email']?.toString(),
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+    );
+  }
+
+  bool get isAdmin => role == 'ADMIN';
+  bool get isKasir => role == 'KASIR';
+  bool get isActive => status == 'ACTIVE';
+  bool get isInvited => status == 'INVITED';
 }
 
 class DbEmployee {

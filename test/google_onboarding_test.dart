@@ -88,13 +88,58 @@ class FakeOnboardingStore implements OnboardingStore {
     return restaurantsById.containsKey(restoId);
   }
 
+  final Map<String, RestaurantMember> membersByUserId = {};
+  final List<RestaurantMember> invitations = [];
+
   @override
-  Future<void> linkProfileToRestaurant(String userId, String restoId) async {
+  Future<void> linkProfileToRestaurant(
+    String userId,
+    String restoId, {
+    String? role,
+  }) async {
     _checkNetwork(throwNetworkOnProfile);
     final existing = profiles[userId];
     if (existing != null) {
-      profiles[userId] = existing.copyWith(restoId: restoId);
+      profiles[userId] = existing.copyWith(
+        restoId: restoId,
+        role: role ?? existing.role,
+      );
     }
+  }
+
+  @override
+  Future<RestaurantMember?> fetchActiveMembership(String userId) async {
+    _checkNetwork(throwNetworkOnProfile);
+    return membersByUserId[userId];
+  }
+
+  @override
+  Future<RestaurantMember?> checkAndClaimInvitation({
+    required String userId,
+    required String email,
+  }) async {
+    _checkNetwork(throwNetworkOnProfile);
+    final cleanEmail = email.trim().toLowerCase();
+    final idx = invitations.indexWhere(
+      (inv) => inv.invitedEmail?.toLowerCase() == cleanEmail && inv.isInvited,
+    );
+    if (idx != -1) {
+      final inv = invitations[idx];
+      final claimed = RestaurantMember(
+        id: inv.id,
+        userId: userId,
+        restaurantId: inv.restaurantId,
+        role: 'KASIR',
+        status: 'ACTIVE',
+        invitedEmail: cleanEmail,
+        createdAt: inv.createdAt,
+      );
+      invitations.removeAt(idx);
+      membersByUserId[userId] = claimed;
+      await linkProfileToRestaurant(userId, inv.restaurantId, role: 'kasir');
+      return claimed;
+    }
+    return null;
   }
 
   @override
@@ -114,7 +159,15 @@ class FakeOnboardingStore implements OnboardingStore {
       record.category = category.trim();
       record.address = address?.trim();
       record.phone = phone?.trim();
-      await linkProfileToRestaurant(userId, existingId);
+      membersByUserId[userId] = RestaurantMember(
+        id: 'mem-$existingId',
+        userId: userId,
+        restaurantId: existingId,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        createdAt: DateTime.now(),
+      );
+      await linkProfileToRestaurant(userId, existingId, role: 'admin');
       return existingId;
     }
 
@@ -128,7 +181,15 @@ class FakeOnboardingStore implements OnboardingStore {
       address: address?.trim(),
       phone: phone?.trim(),
     );
-    await linkProfileToRestaurant(userId, newId);
+    membersByUserId[userId] = RestaurantMember(
+      id: 'mem-$newId',
+      userId: userId,
+      restaurantId: newId,
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      createdAt: DateTime.now(),
+    );
+    await linkProfileToRestaurant(userId, newId, role: 'admin');
     return newId;
   }
 }

@@ -69,13 +69,16 @@ void main() {
       expect(adminProfile.isAdmin, true);
       expect(adminProfile.isKasir, false);
 
-      final ownerProfile = UserProfile(
-        id: 'u-3',
-        fullName: 'Owner Resto',
-        email: 'owner@resto.com',
-        role: 'owner',
-      );
-      expect(ownerProfile.isAdmin, true);
+      // Uji normalisasi role warisan (legacy owner otomatis menjadi admin)
+      final legacyOwnerProfile = UserProfile.fromMap({
+        'id': 'u-3',
+        'full_name': 'Admin Pemilik',
+        'email': 'admin_pemilik@resto.com',
+        'role': 'owner',
+      });
+      expect(legacyOwnerProfile.role, 'admin');
+      expect(legacyOwnerProfile.isAdmin, true);
+      expect(legacyOwnerProfile.isKasir, false);
     });
   });
 }

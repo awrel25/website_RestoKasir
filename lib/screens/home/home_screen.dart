@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => BusinessSetupScreen(
-              initialOwnerName: resolution.ownerName,
+              initialAdminName: resolution.adminName,
             ),
           ),
         );
@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // ROLE BASED ROUTING & RESTRICTION:
     // 1. Kasir: strictly gets CashierScreen. No access to Admin features.
-    // 2. Admin / Owner: gets AdminScreen by default, but can preview/help with Cashier POS if desired.
+    // 2. Admin: gets AdminScreen by default, but can preview/help with Cashier POS if desired.
     if (profile.isAdmin) {
       if (_adminViewingPos) {
         return CashierScreen(
