@@ -881,7 +881,7 @@ function renderProductDetailDialog(productId) {
   if (inCart > 0) {
     footer.innerHTML =
       '<div class="detail-qty-row">' +
-      '<span class="detail-qty-label">Jumlah di keranjang</span>' +
+      '<span class="detail-qty-label">Jumlah</span>' +
       buildStepperOrAddHtml(product, inCart) +
       '</div>';
   } else {
@@ -891,7 +891,7 @@ function renderProductDetailDialog(productId) {
       '" ' +
       (outOfStock ? 'disabled' : '') +
       '>' +
-      (outOfStock ? 'Stok Habis' : 'Tambah ke Keranjang — ' + formatRupiah(product.price)) +
+      (outOfStock ? 'Habis' : 'Tambah') +
       '</button>';
   }
 }
@@ -907,17 +907,17 @@ function updateCartQty(productId, delta, notifyAdd = false) {
   const maxStock = Number(product.stock) || 0;
 
   if (nextQty > maxStock) {
-    showToast('Stok tersisa ' + maxStock + ' porsi');
+    showToast('Sisa stok: ' + maxStock);
     return;
   }
 
   if (nextQty <= 0) {
     delete state.cart[productId];
-    showToast(product.name + ' dihapus dari keranjang');
+    showToast('Item dihapus');
   } else {
     state.cart[productId] = { product, qty: nextQty };
     if (notifyAdd && delta > 0 && existing.qty === 0) {
-      showToast(product.name + ' ditambahkan ke keranjang');
+      showToast('Item ditambahkan');
     }
   }
 
@@ -1078,7 +1078,7 @@ async function submitOrder() {
 
   const submitBtn = document.getElementById('btnSubmitOrder');
   submitBtn.disabled = true;
-  submitBtn.textContent = 'Membuat pesanan...';
+  submitBtn.textContent = 'Memproses...';
 
   try {
     let savedSummary = null;
@@ -1137,14 +1137,14 @@ async function submitOrder() {
     updateFloatingCartBar();
     closeCartModal();
     fetchMenuProducts();
-    showToast('Pesanan berhasil dibuat (' + savedSummary.invoiceNo + ')');
+    showToast('Pesanan dibuat (' + savedSummary.invoiceNo + ')');
     openOrderFlowModal(savedSummary);
   } catch (err) {
     console.error('Submit order error:', err);
-    showToast('Gagal membuat pesanan. Silakan periksa stok atau koneksi Anda.');
+    showToast('Gagal membuat pesanan');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Buat Pesanan';
+    submitBtn.textContent = 'Pesan Sekarang';
   }
 }
 
@@ -1469,21 +1469,21 @@ function updateActiveOrderIndicators() {
 
   if (titleEl) {
     if (paid) {
-      titleEl.textContent = 'Pesanan Dikonfirmasi Kasir (PAID)';
+      titleEl.textContent = 'Pesanan Lunas';
     } else if (demoDone) {
-      titleEl.textContent = 'Terkirim ke Kasir • Simulasi QRIS Selesai';
+      titleEl.textContent = 'Simulasi Selesai';
     } else {
-      titleEl.textContent = 'Pesanan Terkirim ke Kasir • Menunggu Bayar';
+      titleEl.textContent = 'Pesanan Masuk';
     }
   }
 
   if (subEl) {
     subEl.textContent =
-      order.invoiceNo + ' • ' + formatRupiah(order.total) + ' • Ketuk untuk cek detail';
+      order.invoiceNo + ' • ' + formatRupiah(order.total);
   }
 
   if (ctaEl) {
-    ctaEl.textContent = paid ? 'Lunas ✓' : 'Cek Status';
+    ctaEl.textContent = paid ? 'Lunas' : 'Status';
   }
 }
 
@@ -1521,7 +1521,7 @@ function renderEmptyCheckOrderModal() {
     emptyDesc.innerHTML =
       'Meja <strong>' +
       escapeHtml(formatTableLabel(lockedTableNumber)) +
-      '</strong> siap untuk pesanan baru! Silakan pilih menu di layar lalu tekan <strong>Buat Pesanan</strong> untuk memesan hidangan favorit Anda.';
+      '</strong> siap untuk pesanan baru.';
   }
 }
 
@@ -1538,15 +1538,15 @@ async function manualRefreshOrderStatus(silent = false) {
       if (!silent) {
         showToast(
           isOrderPaid(updated)
-            ? 'Status terbaru: Pembayaran telah dikonfirmasi kasir (PAID)'
-            : 'Status terbaru: Pesanan sudah terkirim ke kasir'
+            ? 'Status: Lunas'
+            : 'Status: Terkirim'
         );
       }
     }
   } finally {
     if (btn && !silent) {
       btn.disabled = false;
-      btn.textContent = 'Perbarui Status';
+      btn.textContent = 'Perbarui';
     }
   }
 }
@@ -1609,17 +1609,17 @@ function renderOrderFlowModal(order) {
   }
   if (stepConfirmTitle) {
     stepConfirmTitle.textContent = paid
-      ? '2. Dikonfirmasi Kasir'
+      ? '2. Selesai'
       : demoDone
-        ? '2. Simulasi Selesai'
-        : '2. Konfirmasi Kasir';
+        ? '2. Simulasi'
+        : '2. Pembayaran';
   }
   if (stepConfirmDesc) {
     stepConfirmDesc.textContent = paid
-      ? 'Pembayaran lunas (PAID)'
+      ? 'Lunas'
       : demoDone
-        ? 'Simulasi QRIS berhasil'
-        : 'Menunggu konfirmasi kasir';
+        ? 'Simulasi berhasil'
+        : 'Menunggu pembayaran';
   }
 
   const banner = document.getElementById('orderStatusBanner');
@@ -1646,37 +1646,37 @@ function renderOrderFlowModal(order) {
   if (isFinished) {
     banner.classList.add('completed');
     iconEl.innerHTML = checkSvg;
-    titleEl.textContent = 'Pesanan Selesai & Lunas';
-    subEl.textContent = 'Terima kasih telah berkunjung ke restoran kami! Meja siap untuk pesanan berikutnya.';
+    titleEl.textContent = 'Pesanan Selesai';
+    subEl.textContent = 'Terima kasih telah berkunjung.';
     pillHtml = '<span class="status-pill paid">SELESAI</span>';
   } else if (paid) {
     banner.classList.add('completed');
     iconEl.innerHTML = checkSvg;
-    titleEl.textContent = 'Pembayaran Dikonfirmasi (PAID)';
-    subEl.textContent = 'Kasir telah mengonfirmasi pembayaran Anda.';
+    titleEl.textContent = 'Pembayaran Dikonfirmasi';
+    subEl.textContent = 'Pesanan telah lunas.';
     pillHtml = '<span class="status-pill paid">PAID</span>';
   } else if (isDemoChoice && demoDone) {
     banner.classList.add('demo-done');
     iconEl.innerHTML = checkSvg;
-    titleEl.textContent = 'Pembayaran Demo Berhasil';
-    subEl.textContent = 'Status simulasi: DEMO BERHASIL (bukan transaksi merchant aktif)';
-    pillHtml = '<span class="status-pill demo">DEMO BERHASIL</span>';
+    titleEl.textContent = 'Simulasi Selesai';
+    subEl.textContent = 'Simulasi QRIS berhasil.';
+    pillHtml = '<span class="status-pill demo">BERHASIL</span>';
   } else if (isDemoChoice) {
     iconEl.innerHTML = clockSvg;
-    titleEl.textContent = 'Pembayaran QRIS (MODE DEMO)';
-    subEl.textContent = 'Scan QR dummy (teks BAYAR) lalu tekan tombol simulasi.';
-    pillHtml = '<span class="status-pill unpaid">UNPAID (DEMO)</span>';
+    titleEl.textContent = 'Scan QRIS';
+    subEl.textContent = 'Scan QR lalu konfirmasi pembayaran.';
+    pillHtml = '<span class="status-pill unpaid">UNPAID</span>';
   } else {
     iconEl.innerHTML = clockSvg;
-    titleEl.textContent = 'Menunggu Pembayaran di Kasir';
-    subEl.textContent = 'Status pembayaran: UNPAID';
+    titleEl.textContent = 'Menunggu Pembayaran';
+    subEl.textContent = 'Silakan bayar di kasir.';
     pillHtml = '<span class="status-pill unpaid">UNPAID</span>';
   }
 
   document.getElementById('flowTableNumber').textContent =
     formatTableLabel(order.tableNumber);
   document.getElementById('flowInvoiceLine').textContent =
-    'Nomor Pesanan: ' + order.invoiceNo;
+    'No. Nota: ' + order.invoiceNo;
 
   if (isDemoChoice && !paid && !demoDone) {
     qrisView.hidden = false;
@@ -1717,16 +1717,16 @@ function renderOrderFlowModal(order) {
       '</strong></div>'
     : '';
 
-  const methodDisplay = isDemoChoice ? 'QRIS (MODE DEMO)' : 'Bayar Melalui Kasir';
+  const methodDisplay = isDemoChoice ? 'QRIS' : 'Bayar di Kasir';
 
   document.getElementById('flowOrderDetails').innerHTML =
     '<div class="receipt-line"><span>Status Pembayaran</span><strong>' +
     pillHtml +
     '</strong></div>' +
-    '<div class="receipt-line"><span>Nomor Pesanan</span><strong>' +
+    '<div class="receipt-line"><span>No. Nota</span><strong>' +
     escapeHtml(order.invoiceNo) +
     '</strong></div>' +
-    '<div class="receipt-line"><span>Nomor Meja</span><strong>' +
+    '<div class="receipt-line"><span>Meja</span><strong>' +
     escapeHtml(formatTableLabel(order.tableNumber)) +
     '</strong></div>' +
     '<div class="receipt-line"><span>Waktu Pesan</span><strong>' +
@@ -1749,7 +1749,7 @@ function renderOrderFlowModal(order) {
     (isFinished
       ? '<div style="margin-top:16px;">' +
         '<button type="button" class="btn-primary-full" style="background:#10b981;box-shadow:0 4px 14px rgba(16,185,129,0.35);font-weight:700;" onclick="resetTableForNextCustomer()">' +
-        'Mulai Pesanan Baru di Meja Ini' +
+        'Pesanan Baru' +
         '</button>' +
         '</div>'
       : '');
@@ -1811,13 +1811,13 @@ async function confirmDemoQrisSimulation() {
       state.lastOrder.paymentMethod = 'QRIS DEMO (DEMO BERHASIL)';
       saveLastOrder(state.lastOrder);
       renderOrderFlowModal(state.lastOrder);
-      showToast('Simulasi pembayaran QRIS DEMO berhasil');
+      showToast('Simulasi QRIS berhasil');
     }
   } catch (err) {
     console.error('Demo QRIS confirm error:', err);
     if (qrStage) qrStage.hidden = false;
     if (qrLoadStage) qrLoadStage.hidden = true;
-    showToast('Gagal menyelesaikan simulasi QRIS DEMO');
+    showToast('Gagal simulasi QRIS');
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -1837,7 +1837,7 @@ function resetTableForNextCustomer() {
   renderCartModalContent();
   renderMenuGrid();
   updateActiveOrderIndicators();
-  showToast('Meja ' + (lockedTableNumber ? 'Meja ' + lockedTableNumber : '') + ' siap untuk pesanan baru!');
+  showToast('Meja siap dipesan');
 }
 
 function applyRealtimeOrderRowUpdate(row) {
@@ -1865,7 +1865,7 @@ function applyRealtimeOrderRowUpdate(row) {
     updateActiveOrderIndicators();
 
     if (isFinished) {
-      showToast('Pesanan telah selesai & lunas! Meja siap untuk pesanan berikutnya.');
+      showToast('Pesanan selesai');
       state.cart = {};
       saveCart();
       renderCartModalContent();
@@ -1877,7 +1877,7 @@ function applyRealtimeOrderRowUpdate(row) {
         resetTableForNextCustomer();
       }, 7000);
     } else if (!wasPaid && isOrderPaid(state.lastOrder)) {
-      showToast('Pembayaran telah dikonfirmasi oleh kasir (PAID)');
+      showToast('Pembayaran dikonfirmasi');
     }
   }
 }

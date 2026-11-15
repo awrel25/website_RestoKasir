@@ -367,7 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 10),
               PrimaryButton(
-                text: 'Masuk',
+                text: 'Login',
                 onPressed: isLoading ? null : login,
                 loading: isLoading,
               ),
@@ -411,7 +411,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(width: 10),
                       const Text(
-                        'Lanjutkan dengan Google',
+                        'Google',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -446,7 +446,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                       child: const Text(
-                        'Daftar sekarang',
+                        'Daftar',
                         style: TextStyle(
                           fontSize: 13,
                           color: AppColors.primary,

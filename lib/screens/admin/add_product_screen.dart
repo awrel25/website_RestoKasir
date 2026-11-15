@@ -241,8 +241,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       if (!mounted) return;
 
       final successMsg = _isEditing
-          ? 'Perubahan produk "$name" berhasil disimpan!'
-          : 'Produk "$name" berhasil disimpan ke database!';
+          ? 'Produk diperbarui'
+          : 'Produk ditambahkan';
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -257,8 +257,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal menyimpan produk: $e'),
+        const SnackBar(
+          content: Text('Gagal menyimpan produk'),
           backgroundColor: AppColors.statusCancelled,
           behavior: SnackBarBehavior.floating,
         ),
@@ -275,7 +275,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Ubah Produk Restoran' : 'Tambah Produk Restoran',
+          _isEditing ? 'Edit Produk' : 'Tambah Produk',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -305,7 +305,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Tambahkan menu restoran Anda lengkap dengan nama, harga, stok, dan foto agar tampil di kasir maupun website meja.',
+                            'Lengkapi data menu dan foto produk.',
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark ? AppColors.darkText : AppColors.lightText,
@@ -369,7 +369,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
                   // Nama Produk
                   Text(
-                    'Nama Produk / Menu *',
+                    'Nama Produk *',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -394,7 +394,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
                   // Kategori Menu
                   Text(
-                    'Kategori Menu *',
+                    'Kategori *',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -431,7 +431,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Harga Jual (Rp) *',
+                            'Harga (Rp) *',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -516,7 +516,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
                   // Ikon Cadangan
                   Text(
-                    'Ikon Menu Cadangan',
+                    'Ikon Menu',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -584,10 +584,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           : const Icon(Icons.check_circle_rounded),
                       label: Text(
                         _isLoading
-                            ? 'Menyimpan Produk & Foto...'
-                            : (_isEditing
-                                ? 'Simpan Perubahan Produk'
-                                : 'Simpan Produk ke Restoran'),
+                            ? 'Menyimpan...'
+                            : 'Simpan',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

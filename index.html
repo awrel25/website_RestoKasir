@@ -1315,51 +1315,11 @@ dialog.app-dialog::backdrop {
   margin-bottom: 0.5rem;
 }
 
-.detail-desc-box {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.75rem 0.875rem;
-  margin: 0.625rem 0 0.5rem;
-  text-align: left;
-}
-
-.detail-desc-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.detail-desc {
-  font-size: 0.84rem;
-  color: var(--text);
-  line-height: 1.5;
-  white-space: pre-line;
-  word-break: break-word;
-}
-
 .detail-table-note {
   font-size: 0.75rem;
   color: var(--text-muted);
   line-height: 1.4;
   margin-bottom: 0.25rem;
-}
-
-.menu-desc-container {
-  margin-top: 0.25rem;
-  width: 100%;
-}
-
-.menu-desc-snippet {
-  font-size: 0.76rem;
-  color: var(--text-muted);
-  line-height: 1.45;
-  white-space: pre-line;
-  word-break: break-word;
-  margin: 0;
 }
 
 .detail-qty-row {
@@ -1985,11 +1945,11 @@ dialog.app-dialog::backdrop {
         <div class="active-order-left">
           <span class="active-order-dot" aria-hidden="true"></span>
           <div class="active-order-meta">
-            <div class="active-order-title" id="activeOrderTitle">Pesanan Terkirim ke Kasir</div>
-            <div class="active-order-sub" id="activeOrderSub">Ketuk untuk melihat status konfirmasi kasir</div>
+            <div class="active-order-title" id="activeOrderTitle">Pesanan Masuk</div>
+            <div class="active-order-sub" id="activeOrderSub">Ketuk untuk cek status</div>
           </div>
         </div>
-        <span class="active-order-cta" id="activeOrderCta">Cek Status</span>
+        <span class="active-order-cta" id="activeOrderCta">Status</span>
       </button>
 
       <section class="controls-bar" aria-label="Pencarian dan kategori menu">
@@ -2008,7 +1968,7 @@ dialog.app-dialog::backdrop {
                 id="searchInput"
                 name="q"
                 class="search-input"
-                placeholder="Cari menu makanan atau minuman..."
+                placeholder="Cari menu..."
                 autocorrect="off"
                 autocapitalize="none"
                 spellcheck="false"
@@ -2030,16 +1990,16 @@ dialog.app-dialog::backdrop {
 
       <section aria-live="polite">
         <div id="loadingState" class="loading-state">
-          <progress aria-label="Memuat daftar menu" class="loading-spinner"></progress>
-          <span>Memuat daftar menu...</span>
+          <progress aria-label="Memuat menu" class="loading-spinner"></progress>
+          <span>Memuat menu...</span>
         </div>
 
         <div id="menuGrid" class="menu-grid" hidden></div>
 
         <div id="emptyState" class="empty-state" hidden>
-          <h3>Menu belum tersedia</h3>
-          <p id="emptyDesc">Belum ada menu yang sesuai dengan pencarian atau stok sedang kosong.</p>
-          <button type="button" class="retry-btn" id="btnRetryMenu">Muat Ulang Menu</button>
+          <h3>Menu Kosong</h3>
+          <p id="emptyDesc">Menu tidak ditemukan.</p>
+          <button type="button" class="retry-btn" id="btnRetryMenu">Muat Ulang</button>
         </div>
       </section>
     </div>
@@ -2054,14 +2014,14 @@ dialog.app-dialog::backdrop {
       </div>
     </div>
     <button type="button" class="btn-checkout-bar" id="btnOpenCart">
-      Periksa Pesanan
+      Keranjang
     </button>
   </div>
 
   <!-- Dialog Detail Produk -->
   <dialog id="productDetailModal" class="app-dialog" closedby="any" aria-labelledby="detailDialogTitle">
     <div class="modal-header">
-      <h2 class="modal-title" id="detailDialogTitle">Detail Menu</h2>
+      <h2 class="modal-title" id="detailDialogTitle">Detail</h2>
       <button type="button" class="modal-close" id="btnCloseDetail" aria-label="Tutup detail menu">
         &times;
       </button>
@@ -2075,7 +2035,7 @@ dialog.app-dialog::backdrop {
   <!-- Dialog Keranjang & Checkout -->
   <dialog id="cartModal" class="app-dialog" closedby="any" aria-labelledby="cartDialogTitle">
     <div class="modal-header">
-      <h2 class="modal-title" id="cartDialogTitle">Konfirmasi Pesanan</h2>
+      <h2 class="modal-title" id="cartDialogTitle">Keranjang</h2>
       <button type="button" class="modal-close" id="btnCloseCart" aria-label="Tutup keranjang">
         &times;
       </button>
@@ -2097,16 +2057,14 @@ dialog.app-dialog::backdrop {
           <label class="form-label" for="customerNameInput">
             Nama Pemesan <span aria-hidden="true">*</span>
           </label>
-          <span id="customerNameHint" class="form-hint">Digunakan kasir untuk memanggil atau memverifikasi pesanan meja Anda.</span>
           <input
             type="text"
             id="customerNameInput"
             name="customer_name"
             class="form-input"
-            placeholder="Contoh: Budi"
+            placeholder="Nama Anda"
             autocomplete="name"
             required
-            aria-describedby="customerNameHint"
             data-error="customerNameError"
             enterkeyhint="next"
           />
@@ -2116,39 +2074,39 @@ dialog.app-dialog::backdrop {
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <span>Error: Nama pemesan wajib diisi sebelum mengirim pesanan.</span>
+            <span>Nama wajib diisi</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="orderNotesInput">Catatan Tambahan (Opsional)</label>
+          <label class="form-label" for="orderNotesInput">Catatan (Opsional)</label>
           <input
             type="text"
             id="orderNotesInput"
             name="order_notes"
             class="form-input"
-            placeholder="Contoh: Tanpa pedas, es dipisah"
+            placeholder="Tanpa pedas, es dipisah"
             enterkeyhint="done"
           />
         </div>
 
         <fieldset class="payment-fieldset">
-          <legend>Pilih Metode Pembayaran</legend>
+          <legend>Metode Pembayaran</legend>
           <div class="payment-options">
             <label class="pay-radio-label">
               <span class="pay-option-title">
                 <input type="radio" name="paymentMethod" value="CASHIER" checked />
-                Bayar Melalui Kasir
+                Bayar di Kasir
               </span>
-              <span class="pay-option-desc">Bayar langsung di meja kasir</span>
+              <span class="pay-option-desc">Bayar langsung di kasir</span>
             </label>
 
             <label class="pay-radio-label">
               <span class="pay-option-title">
                 <input type="radio" name="paymentMethod" value="QRIS_DEMO" />
-                QRIS (Mode Demo)
+                QRIS
               </span>
-              <span class="pay-option-desc">Simulasi QR dummy payload BAYAR</span>
+              <span class="pay-option-desc">Scan kode QRIS</span>
             </label>
           </div>
         </fieldset>
@@ -2156,15 +2114,15 @@ dialog.app-dialog::backdrop {
 
       <div class="summary-box">
         <div class="summary-line">
-          <span>Subtotal Menu</span>
+          <span>Subtotal</span>
           <span class="tabular" id="modalSubtotal">Rp 0</span>
         </div>
         <div class="summary-line">
-          <span>Biaya Layanan (5%)</span>
+          <span>Layanan (5%)</span>
           <span class="tabular" id="modalService">Rp 0</span>
         </div>
         <div class="summary-total">
-          <span>Total Pembayaran</span>
+          <span>Total</span>
           <span class="tabular" id="modalTotal">Rp 0</span>
         </div>
       </div>
@@ -2172,7 +2130,7 @@ dialog.app-dialog::backdrop {
 
     <div class="modal-footer">
       <button type="submit" form="checkoutForm" class="btn-primary-full" id="btnSubmitOrder">
-        Buat Pesanan
+        Pesan Sekarang
       </button>
     </div>
   </dialog>
@@ -2180,7 +2138,7 @@ dialog.app-dialog::backdrop {
   <!-- Dialog Cek Pesanan & Status Pengiriman ke Kasir -->
   <dialog id="orderFlowModal" class="app-dialog" closedby="any" aria-labelledby="orderFlowDialogTitle">
     <div class="modal-header">
-      <h2 class="modal-title" id="orderFlowDialogTitle">Cek Status Pesanan</h2>
+      <h2 class="modal-title" id="orderFlowDialogTitle">Status Pesanan</h2>
       <button type="button" class="modal-close" id="btnCloseOrderFlow" aria-label="Tutup jendela">
         &times;
       </button>
@@ -2196,9 +2154,9 @@ dialog.app-dialog::backdrop {
             <line x1="9" y1="17" x2="13" y2="17" />
           </svg>
         </div>
-        <h3>Belum Ada Pesanan Terkirim</h3>
+        <h3>Belum Ada Pesanan</h3>
         <p id="emptyOrderCheckDesc">
-          Belum ada pesanan aktif dari meja ini yang dikirim ke kasir. Pilih menu lalu tekan <strong>Buat Pesanan</strong> untuk mengirim pesanan ke kasir.
+          Belum ada pesanan aktif di meja ini.
         </p>
       </div>
 
@@ -2207,15 +2165,15 @@ dialog.app-dialog::backdrop {
           <div class="kasir-step done" id="stepSentToCashier">
             <span class="kasir-step-badge" aria-hidden="true">&#10003;</span>
             <div>
-              <div class="kasir-step-title">1. Terkirim ke Kasir</div>
-              <div class="kasir-step-desc" id="stepSentDesc">Sudah masuk di kasir</div>
+              <div class="kasir-step-title">1. Terkirim</div>
+              <div class="kasir-step-desc" id="stepSentDesc">Pesanan diterima</div>
             </div>
           </div>
           <div class="kasir-step pending" id="stepCashierConfirm">
             <span class="kasir-step-badge" id="stepConfirmBadge" aria-hidden="true">2</span>
             <div>
-              <div class="kasir-step-title" id="stepConfirmTitle">2. Konfirmasi Kasir</div>
-              <div class="kasir-step-desc" id="stepConfirmDesc">Menunggu pembayaran</div>
+              <div class="kasir-step-title" id="stepConfirmTitle">2. Pembayaran</div>
+              <div class="kasir-step-desc" id="stepConfirmDesc">Menunggu kasir</div>
             </div>
           </div>
         </div>
@@ -2228,25 +2186,24 @@ dialog.app-dialog::backdrop {
             </svg>
           </div>
           <div>
-            <p class="status-banner-title" id="orderStatusTitle">Terkirim ke Kasir — Menunggu Pembayaran</p>
-            <p class="status-banner-sub" id="orderStatusSub">Status pembayaran: UNPAID</p>
+            <p class="status-banner-title" id="orderStatusTitle">Menunggu Pembayaran</p>
+            <p class="status-banner-sub" id="orderStatusSub">Belum Dibayar</p>
           </div>
         </div>
 
         <div class="table-verify-box">
-          <div class="table-verify-label">Nomor Meja Pelanggan</div>
+          <div class="table-verify-label">Meja</div>
           <div class="table-verify-number" id="flowTableNumber">Meja 01</div>
-          <p class="table-verify-text" id="flowInvoiceLine">Nomor Pesanan: -</p>
+          <p class="table-verify-text" id="flowInvoiceLine">No. Pesanan: -</p>
         </div>
 
         <!-- Mode A: Halaman QRIS MODE DEMO -->
         <div class="qris-demo-panel" id="qrisDemoView" hidden>
           <div class="demo-warning-banner">
-            <strong>MODE DEMO — Bukan QRIS Merchant Aktif.</strong><br />
-            QR Code berikut hanya simulasi untuk demonstrasi aplikasi. Memindai QR berisi teks <code>BAYAR</code> tidak memproses dana asli. Tekan tombol konfirmasi di bawah untuk menyelesaikan simulasi.
+            Simulasi Pembayaran QRIS. Tekan konfirmasi di bawah untuk menyelesaikan pembayaran.
           </div>
 
-          <div class="locked-table-label">Total Pembayaran Simulasi</div>
+          <div class="locked-table-label">Total Pembayaran</div>
           <div class="demo-amount-hero tabular" id="qrisDemoAmount">Rp 0</div>
 
           <div id="qrisDemoQrStage">
@@ -2254,23 +2211,22 @@ dialog.app-dialog::backdrop {
               <div id="webQrisCanvas"></div>
             </div>
             <div>
-              <span class="demo-payload-tag">Payload QR: BAYAR</span>
+              <span class="demo-payload-tag">QR: BAYAR</span>
             </div>
             <button type="button" class="btn-primary-full" id="btnConfirmDemoQris">
-              Saya Sudah Membayar
+              Konfirmasi Bayar
             </button>
           </div>
 
           <div class="demo-processing-box" id="qrisDemoLoadingStage" hidden>
-            <progress aria-label="Memproses konfirmasi pembayaran demo" class="loading-spinner loading-spinner--sm"></progress>
-            <span>Memproses simulasi pembayaran...</span>
+            <progress aria-label="Memproses pembayaran" class="loading-spinner loading-spinner--sm"></progress>
+            <span>Memproses...</span>
           </div>
         </div>
 
         <!-- Mode B: Instruksi Pembayaran Melalui Kasir -->
         <div class="cashier-instruction-box" id="cashierInstructionBox" hidden>
-          <strong>Pesanan Sudah Masuk di Kasir Restoran</strong><br />
-          Silakan tunjukkan nomor meja dan nomor pesanan kepada kasir untuk melakukan pembayaran. Status di halaman ini akan otomatis berubah menjadi <strong>PAID (Selesai)</strong> setelah kasir mengonfirmasi.
+          Silakan lakukan pembayaran ke kasir. Status otomatis diperbarui setelah lunas.
         </div>
 
         <div class="order-receipt-card" id="flowOrderDetails"></div>
@@ -2280,10 +2236,10 @@ dialog.app-dialog::backdrop {
     <div class="modal-footer">
       <div class="modal-footer-row">
         <button type="button" class="btn-secondary-full" id="btnRefreshOrderStatus" hidden>
-          Perbarui Status
+          Perbarui
         </button>
         <button type="button" class="btn-secondary-full" id="btnBackToMenu">
-          Kembali ke Menu
+          Kembali
         </button>
       </div>
     </div>
@@ -3072,13 +3028,6 @@ function renderMenuGrid() {
           '" loading="lazy" onerror="this.remove()" />'
         : '';
 
-      const rawDesc = String(p.description || p.deskripsi || '').trim();
-      const descHtml = rawDesc
-        ? '<div class="menu-desc-container"><p class="menu-desc-snippet">' +
-          escapeHtml(rawDesc) +
-          '</p></div>'
-        : '';
-
       return (
         '<article class="menu-card ' +
         (outOfStock ? 'out-of-stock' : '') +
@@ -3104,7 +3053,6 @@ function renderMenuGrid() {
         '<h3 class="menu-name">' +
         escapeHtml(p.name) +
         '</h3>' +
-        descHtml +
         '</div>' +
         '</button>' +
         '<div class="menu-footer">' +
@@ -3177,25 +3125,13 @@ function renderProductDetailDialog(productId) {
     '</h3>' +
     '<div class="detail-price tabular">' +
     formatRupiah(product.price) +
-    '</div>' +
-    '<div class="detail-desc-box">' +
-    '<div class="detail-desc-label">Deskripsi Lengkap</div>' +
-    '<p class="detail-desc' +
-    (String(product.description || product.deskripsi || '').trim() ? '' : ' text-muted') +
-    '">' +
-    escapeHtml(
-      String(product.description || product.deskripsi || '').trim()
-        ? String(product.description || product.deskripsi || '').trim()
-        : 'Belum ada deskripsi makanan yang dicantumkan pada aplikasi kasir.'
-    ) +
-    '</p>' +
     '</div>';
 
   const footer = document.getElementById('detailModalFooter');
   if (inCart > 0) {
     footer.innerHTML =
       '<div class="detail-qty-row">' +
-      '<span class="detail-qty-label">Jumlah di keranjang</span>' +
+      '<span class="detail-qty-label">Jumlah</span>' +
       buildStepperOrAddHtml(product, inCart) +
       '</div>';
   } else {
@@ -3205,7 +3141,7 @@ function renderProductDetailDialog(productId) {
       '" ' +
       (outOfStock ? 'disabled' : '') +
       '>' +
-      (outOfStock ? 'Stok Habis' : 'Tambah ke Keranjang — ' + formatRupiah(product.price)) +
+      (outOfStock ? 'Habis' : 'Tambah') +
       '</button>';
   }
 }
@@ -3221,17 +3157,17 @@ function updateCartQty(productId, delta, notifyAdd = false) {
   const maxStock = Number(product.stock) || 0;
 
   if (nextQty > maxStock) {
-    showToast('Stok tersisa ' + maxStock + ' porsi');
+    showToast('Sisa stok: ' + maxStock);
     return;
   }
 
   if (nextQty <= 0) {
     delete state.cart[productId];
-    showToast(product.name + ' dihapus dari keranjang');
+    showToast('Item dihapus');
   } else {
     state.cart[productId] = { product, qty: nextQty };
     if (notifyAdd && delta > 0 && existing.qty === 0) {
-      showToast(product.name + ' ditambahkan ke keranjang');
+      showToast('Item ditambahkan');
     }
   }
 
@@ -3392,7 +3328,7 @@ async function submitOrder() {
 
   const submitBtn = document.getElementById('btnSubmitOrder');
   submitBtn.disabled = true;
-  submitBtn.textContent = 'Membuat pesanan...';
+  submitBtn.textContent = 'Memproses...';
 
   try {
     let savedSummary = null;
@@ -3451,14 +3387,14 @@ async function submitOrder() {
     updateFloatingCartBar();
     closeCartModal();
     fetchMenuProducts();
-    showToast('Pesanan berhasil dibuat (' + savedSummary.invoiceNo + ')');
+    showToast('Pesanan dibuat (' + savedSummary.invoiceNo + ')');
     openOrderFlowModal(savedSummary);
   } catch (err) {
     console.error('Submit order error:', err);
-    showToast('Gagal membuat pesanan. Silakan periksa stok atau koneksi Anda.');
+    showToast('Gagal membuat pesanan');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Buat Pesanan';
+    submitBtn.textContent = 'Pesan Sekarang';
   }
 }
 
@@ -3647,6 +3583,11 @@ function restoreLastOrderFromStorage() {
     if (!raw) return;
     const parsed = JSON.parse(raw);
     if (parsed && parsed.invoiceNo && Number(parsed.tableNumber) === Number(lockedTableNumber)) {
+      const st = String(parsed.status || '').toLowerCase().trim();
+      if (st === 'pesanan selesai' || st === 'selesai' || st === 'dibatalkan') {
+        localStorage.removeItem(getLastOrderStorageKey());
+        return;
+      }
       state.lastOrder = parsed;
       updateActiveOrderIndicators();
     }
@@ -3680,6 +3621,22 @@ async function fetchLatestTableOrderFromServer() {
     if (!Array.isArray(rows) || rows.length === 0) return state.lastOrder;
 
     const latest = rows[0];
+    const latestStatus = String(latest.status || '').toLowerCase().trim();
+    if (
+      latestStatus === 'pesanan selesai' ||
+      latestStatus === 'selesai' ||
+      latestStatus === 'dibatalkan'
+    ) {
+      // Pesanan sebelumnya untuk meja ini sudah selesai / lunas atau dibatalkan.
+      // Meja ini sekarang BERSIH dan siap untuk customer baru yang duduk di meja ini.
+      if (state.lastOrder && String(state.lastOrder.tableNumber) === String(lockedTableNumber)) {
+        clearLastOrder();
+        state.lastOrder = null;
+        updateActiveOrderIndicators();
+      }
+      return null;
+    }
+
     // Hanya tampilkan pesanan dari 12 jam terakhir agar pesanan hari sebelumnya tidak membingungkan
     const createdMs = Date.parse(latest.created_at || '');
     if (Number.isFinite(createdMs) && Date.now() - createdMs > 12 * 60 * 60 * 1000) {
@@ -3762,21 +3719,21 @@ function updateActiveOrderIndicators() {
 
   if (titleEl) {
     if (paid) {
-      titleEl.textContent = 'Pesanan Dikonfirmasi Kasir (PAID)';
+      titleEl.textContent = 'Pesanan Lunas';
     } else if (demoDone) {
-      titleEl.textContent = 'Terkirim ke Kasir • Simulasi QRIS Selesai';
+      titleEl.textContent = 'Simulasi Selesai';
     } else {
-      titleEl.textContent = 'Pesanan Terkirim ke Kasir • Menunggu Bayar';
+      titleEl.textContent = 'Pesanan Masuk';
     }
   }
 
   if (subEl) {
     subEl.textContent =
-      order.invoiceNo + ' • ' + formatRupiah(order.total) + ' • Ketuk untuk cek detail';
+      order.invoiceNo + ' • ' + formatRupiah(order.total);
   }
 
   if (ctaEl) {
-    ctaEl.textContent = paid ? 'Lunas ✓' : 'Cek Status';
+    ctaEl.textContent = paid ? 'Lunas' : 'Status';
   }
 }
 
@@ -3812,9 +3769,9 @@ function renderEmptyCheckOrderModal() {
   if (refreshBtn) refreshBtn.hidden = true;
   if (emptyDesc && lockedTableNumber) {
     emptyDesc.innerHTML =
-      'Belum ada pesanan aktif dari <strong>' +
+      'Meja <strong>' +
       escapeHtml(formatTableLabel(lockedTableNumber)) +
-      '</strong> yang dikirim ke kasir. Pilih menu lalu tekan <strong>Buat Pesanan</strong> untuk mengirim pesanan ke kasir.';
+      '</strong> siap untuk pesanan baru.';
   }
 }
 
@@ -3831,15 +3788,15 @@ async function manualRefreshOrderStatus(silent = false) {
       if (!silent) {
         showToast(
           isOrderPaid(updated)
-            ? 'Status terbaru: Pembayaran telah dikonfirmasi kasir (PAID)'
-            : 'Status terbaru: Pesanan sudah terkirim ke kasir'
+            ? 'Status: Lunas'
+            : 'Status: Terkirim'
         );
       }
     }
   } finally {
     if (btn && !silent) {
       btn.disabled = false;
-      btn.textContent = 'Perbarui Status';
+      btn.textContent = 'Perbarui';
     }
   }
 }
@@ -3902,17 +3859,17 @@ function renderOrderFlowModal(order) {
   }
   if (stepConfirmTitle) {
     stepConfirmTitle.textContent = paid
-      ? '2. Dikonfirmasi Kasir'
+      ? '2. Selesai'
       : demoDone
-        ? '2. Simulasi Selesai'
-        : '2. Konfirmasi Kasir';
+        ? '2. Simulasi'
+        : '2. Pembayaran';
   }
   if (stepConfirmDesc) {
     stepConfirmDesc.textContent = paid
-      ? 'Pembayaran lunas (PAID)'
+      ? 'Lunas'
       : demoDone
-        ? 'Simulasi QRIS berhasil'
-        : 'Menunggu konfirmasi kasir';
+        ? 'Simulasi berhasil'
+        : 'Menunggu pembayaran';
   }
 
   const banner = document.getElementById('orderStatusBanner');
@@ -3932,34 +3889,44 @@ function renderOrderFlowModal(order) {
   const clockSvg =
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>';
 
-  if (paid) {
+  const isFinished =
+    String(order.status || '').toLowerCase() === 'pesanan selesai' ||
+    String(order.status || '').toLowerCase() === 'selesai';
+
+  if (isFinished) {
     banner.classList.add('completed');
     iconEl.innerHTML = checkSvg;
-    titleEl.textContent = 'Pembayaran Dikonfirmasi (PAID)';
-    subEl.textContent = 'Kasir telah mengonfirmasi pembayaran Anda.';
+    titleEl.textContent = 'Pesanan Selesai';
+    subEl.textContent = 'Terima kasih telah berkunjung.';
+    pillHtml = '<span class="status-pill paid">SELESAI</span>';
+  } else if (paid) {
+    banner.classList.add('completed');
+    iconEl.innerHTML = checkSvg;
+    titleEl.textContent = 'Pembayaran Dikonfirmasi';
+    subEl.textContent = 'Pesanan telah lunas.';
     pillHtml = '<span class="status-pill paid">PAID</span>';
   } else if (isDemoChoice && demoDone) {
     banner.classList.add('demo-done');
     iconEl.innerHTML = checkSvg;
-    titleEl.textContent = 'Pembayaran Demo Berhasil';
-    subEl.textContent = 'Status simulasi: DEMO BERHASIL (bukan transaksi merchant aktif)';
-    pillHtml = '<span class="status-pill demo">DEMO BERHASIL</span>';
+    titleEl.textContent = 'Simulasi Selesai';
+    subEl.textContent = 'Simulasi QRIS berhasil.';
+    pillHtml = '<span class="status-pill demo">BERHASIL</span>';
   } else if (isDemoChoice) {
     iconEl.innerHTML = clockSvg;
-    titleEl.textContent = 'Pembayaran QRIS (MODE DEMO)';
-    subEl.textContent = 'Scan QR dummy (teks BAYAR) lalu tekan tombol simulasi.';
-    pillHtml = '<span class="status-pill unpaid">UNPAID (DEMO)</span>';
+    titleEl.textContent = 'Scan QRIS';
+    subEl.textContent = 'Scan QR lalu konfirmasi pembayaran.';
+    pillHtml = '<span class="status-pill unpaid">UNPAID</span>';
   } else {
     iconEl.innerHTML = clockSvg;
-    titleEl.textContent = 'Menunggu Pembayaran di Kasir';
-    subEl.textContent = 'Status pembayaran: UNPAID';
+    titleEl.textContent = 'Menunggu Pembayaran';
+    subEl.textContent = 'Silakan bayar di kasir.';
     pillHtml = '<span class="status-pill unpaid">UNPAID</span>';
   }
 
   document.getElementById('flowTableNumber').textContent =
     formatTableLabel(order.tableNumber);
   document.getElementById('flowInvoiceLine').textContent =
-    'Nomor Pesanan: ' + order.invoiceNo;
+    'No. Nota: ' + order.invoiceNo;
 
   if (isDemoChoice && !paid && !demoDone) {
     qrisView.hidden = false;
@@ -4000,16 +3967,16 @@ function renderOrderFlowModal(order) {
       '</strong></div>'
     : '';
 
-  const methodDisplay = isDemoChoice ? 'QRIS (MODE DEMO)' : 'Bayar Melalui Kasir';
+  const methodDisplay = isDemoChoice ? 'QRIS' : 'Bayar di Kasir';
 
   document.getElementById('flowOrderDetails').innerHTML =
     '<div class="receipt-line"><span>Status Pembayaran</span><strong>' +
     pillHtml +
     '</strong></div>' +
-    '<div class="receipt-line"><span>Nomor Pesanan</span><strong>' +
+    '<div class="receipt-line"><span>No. Nota</span><strong>' +
     escapeHtml(order.invoiceNo) +
     '</strong></div>' +
-    '<div class="receipt-line"><span>Nomor Meja</span><strong>' +
+    '<div class="receipt-line"><span>Meja</span><strong>' +
     escapeHtml(formatTableLabel(order.tableNumber)) +
     '</strong></div>' +
     '<div class="receipt-line"><span>Waktu Pesan</span><strong>' +
@@ -4028,7 +3995,14 @@ function renderOrderFlowModal(order) {
     '<div class="receipt-line receipt-line--total">' +
     '<span>Total Pembayaran</span><strong class="tabular">' +
     formatRupiah(order.total) +
-    '</strong></div>';
+    '</strong></div>' +
+    (isFinished
+      ? '<div style="margin-top:16px;">' +
+        '<button type="button" class="btn-primary-full" style="background:#10b981;box-shadow:0 4px 14px rgba(16,185,129,0.35);font-weight:700;" onclick="resetTableForNextCustomer()">' +
+        'Pesanan Baru' +
+        '</button>' +
+        '</div>'
+      : '');
 }
 
 async function confirmDemoQrisSimulation() {
@@ -4087,27 +4061,46 @@ async function confirmDemoQrisSimulation() {
       state.lastOrder.paymentMethod = 'QRIS DEMO (DEMO BERHASIL)';
       saveLastOrder(state.lastOrder);
       renderOrderFlowModal(state.lastOrder);
-      showToast('Simulasi pembayaran QRIS DEMO berhasil');
+      showToast('Simulasi QRIS berhasil');
     }
   } catch (err) {
     console.error('Demo QRIS confirm error:', err);
     if (qrStage) qrStage.hidden = false;
     if (qrLoadStage) qrLoadStage.hidden = true;
-    showToast('Gagal menyelesaikan simulasi QRIS DEMO');
+    showToast('Gagal simulasi QRIS');
   } finally {
     if (btn) btn.disabled = false;
   }
+}
+
+function resetTableForNextCustomer() {
+  if (state.tableResetTimer) {
+    clearTimeout(state.tableResetTimer);
+    state.tableResetTimer = null;
+  }
+  stopOrderListeners();
+  clearLastOrder();
+  state.lastOrder = null;
+  state.cart = {};
+  saveCart();
+  closeOrderFlowModal();
+  renderCartModalContent();
+  renderMenuGrid();
+  updateActiveOrderIndicators();
+  showToast('Meja siap dipesan');
 }
 
 function applyRealtimeOrderRowUpdate(row) {
   if (!row || !state.lastOrder || row.id !== state.lastOrder.id) return;
 
   const nextStatus = row.status || state.lastOrder.status;
+  const isFinished =
+    String(nextStatus).toLowerCase() === 'pesanan selesai' ||
+    String(nextStatus).toLowerCase() === 'selesai';
+
   const nextPayStatus =
     row.payment_status ||
-    (nextStatus.toLowerCase() === 'pesanan selesai' || nextStatus.toLowerCase() === 'selesai'
-      ? 'paid'
-      : state.lastOrder.paymentStatus);
+    (isFinished ? 'paid' : state.lastOrder.paymentStatus);
 
   const changed =
     nextStatus !== state.lastOrder.status ||
@@ -4119,9 +4112,22 @@ function applyRealtimeOrderRowUpdate(row) {
     state.lastOrder.paymentStatus = nextPayStatus;
     saveLastOrder(state.lastOrder);
     renderOrderFlowModal(state.lastOrder);
+    updateActiveOrderIndicators();
 
-    if (!wasPaid && isOrderPaid(state.lastOrder)) {
-      showToast('Pembayaran telah dikonfirmasi oleh kasir (PAID)');
+    if (isFinished) {
+      showToast('Pesanan selesai');
+      state.cart = {};
+      saveCart();
+      renderCartModalContent();
+      renderMenuGrid();
+
+      // Beri jeda agar customer melihat status selesai, lalu otomatis reset meja untuk customer berikutnya
+      if (state.tableResetTimer) clearTimeout(state.tableResetTimer);
+      state.tableResetTimer = setTimeout(() => {
+        resetTableForNextCustomer();
+      }, 7000);
+    } else if (!wasPaid && isOrderPaid(state.lastOrder)) {
+      showToast('Pembayaran dikonfirmasi');
     }
   }
 }

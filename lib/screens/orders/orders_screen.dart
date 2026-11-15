@@ -35,7 +35,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   final List<String> _filterTabs = [
     'Semua',
-    'Menunggu Dicek / Bayar',
+    'Belum Bayar',
     'Selesai',
     'Dibatalkan',
   ];
@@ -48,7 +48,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.initState();
     _selectedTableFilter = widget.initialTableFilter;
     if (_selectedTableFilter != null) {
-      _selectedFilter = 'Menunggu Dicek / Bayar';
+      _selectedFilter = 'Belum Bayar';
     }
     _loadOrders();
     _startAutoRefresh();
@@ -258,7 +258,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               side: BorderSide(color: AppColors.border(ctx)),
             ),
             title: Text(
-              'Konfirmasi Pembayaran Meja ${order.tableNumber}',
+              'Bayar Meja ${order.tableNumber}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             content: SingleChildScrollView(
@@ -308,7 +308,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     keyboardType: TextInputType.number,
                     onChanged: (_) => setDlg(() {}),
                     decoration: const InputDecoration(
-                      labelText: 'Uang Tunai Diterima (Rp)',
+                      labelText: 'Uang Tunai',
                       prefixText: 'Rp ',
                     ),
                   ),
@@ -382,7 +382,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
                 onPressed: isEnough ? () => Navigator.pop(ctx, cashGiven) : null,
                 icon: const Icon(Icons.print_rounded, size: 18),
-                label: const Text('Lunas & Cetak Struk'),
+                label: const Text('Cetak Struk'),
               ),
             ],
           );
@@ -453,7 +453,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     } else {
       bg = isDark ? AppColors.yellowSoftDark : AppColors.yellowSoft;
       fg = isDark ? AppColors.yellow : AppColors.yellowText;
-      label = 'Menunggu Dicek';
+      label = 'Belum Bayar';
       icon = Icons.access_time_filled_rounded;
     }
 
@@ -554,7 +554,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       icon = Icons.qr_code_scanner_rounded;
     } else {
       color = AppColors.statusPending;
-      label = 'BELUM DIBAYAR';
+      label = 'BELUM BAYAR';
       icon = Icons.schedule_rounded;
     }
 
@@ -792,7 +792,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Pembayaran QRIS Sudah Lunas',
+                              'QRIS Lunas',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -800,7 +800,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               ),
                             ),
                             Text(
-                              'Pelanggan telah menyelesaikan pembayaran via QRIS di website. Kasir tidak perlu memproses pembayaran lagi.',
+                              'Pelanggan telah membayar via QRIS.',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: isDark
@@ -831,7 +831,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ),
                     ),
                     icon: const Icon(Icons.print_rounded, size: 18),
-                    label: const Text('Cetak Nota'),
+                    label: const Text('Cetak Struk'),
                     onPressed: () {
                       Navigator.pop(ctx);
                       Navigator.push(
@@ -862,7 +862,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ),
                       icon: const Icon(Icons.check_circle_outline_rounded,
                           size: 18),
-                      label: const Text('Tandai Selesai'),
+                      label: const Text('Selesai'),
                       onPressed: () {
                         Navigator.pop(ctx);
                         _changeStatus(order, 'pesanan selesai');
@@ -882,7 +882,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                       ),
                       icon: const Icon(Icons.payments_outlined, size: 18),
-                      label: const Text('Bayar Tunai'),
+                      label: const Text('Tunai'),
                       onPressed: () {
                         Navigator.pop(ctx);
                         _openCashPaymentForOrder(order);
@@ -901,7 +901,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                       ),
                       icon: const Icon(Icons.qr_code_scanner_rounded, size: 18),
-                      label: const Text('Bayar QRIS'),
+                      label: const Text('Scan QRIS'),
                       onPressed: () {
                         Navigator.pop(ctx);
                         _openQrisPaymentForOrder(order);
@@ -1203,7 +1203,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'Belum ada pesanan untuk filter ini.',
+                                'Belum ada pesanan',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: AppColors.muted(context),
@@ -1338,7 +1338,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                                     ),
                                                   ),
                                                   child: Text(
-                                                    'Pesanan Website Meja',
+                                                    'Pesanan Meja',
                                                     style: TextStyle(
                                                       fontSize: 10,
                                                       fontWeight:
@@ -1432,7 +1432,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                                     isWebQrisPaid
                                                         ? 'Total Lunas · QRIS'
                                                         : isPending
-                                                            ? 'Total Tagihan (Belum Bayar)'
+                                                            ? 'Total (Belum Bayar)'
                                                             : 'Total Pembayaran',
                                                     style: TextStyle(
                                                       fontSize: 11,
@@ -1483,7 +1483,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                                 icon: const Icon(
                                                     Icons.print_rounded,
                                                     size: 16),
-                                                label: const Text('Cetak Nota',
+                                                label: const Text('Cetak Struk',
                                                     style: TextStyle(
                                                         fontSize: 12)),
                                                 onPressed: () {
@@ -1522,7 +1522,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                                     _openCashPaymentForOrder(
                                                         order),
                                                 child: const Text(
-                                                  'Bayar Tunai',
+                                                  'Tunai',
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w700,

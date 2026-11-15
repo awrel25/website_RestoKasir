@@ -121,7 +121,7 @@ class _CashierScreenState extends State<CashierScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Pesanan baru masuk dari Meja ${newest.tableNumber} (${newest.cashierName}) - ${_formatRupiah(newest.total)}',
+                      'Pesanan Meja ${newest.tableNumber} - ${_formatRupiah(newest.total)}',
                       style: const TextStyle(
                           fontWeight: FontWeight.w600, fontSize: 13),
                     ),
@@ -132,7 +132,7 @@ class _CashierScreenState extends State<CashierScreen> {
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 5),
               action: SnackBarAction(
-                label: 'Cek Meja',
+                label: 'Cek',
                 textColor: AppColors.yellow,
                 onPressed: _openOrders,
               ),
@@ -206,7 +206,7 @@ class _CashierScreenState extends State<CashierScreen> {
     if (product.stock <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Maaf, stok produk ini sedang habis.'),
+          content: Text('Stok habis'),
           backgroundColor: AppColors.statusCancelled,
           behavior: SnackBarBehavior.floating,
         ),
@@ -222,7 +222,7 @@ class _CashierScreenState extends State<CashierScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Batas maksimal stok (${product.stock}) telah tercapai.'),
+              content: Text('Maksimal stok (${product.stock})'),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -250,7 +250,7 @@ class _CashierScreenState extends State<CashierScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Stok hanya tersedia ${item.product.stock} pcs.'),
+          content: Text('Sisa stok ${item.product.stock}'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -261,7 +261,7 @@ class _CashierScreenState extends State<CashierScreen> {
     if (_cart.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Keranjang belanja masih kosong.'),
+          content: Text('Keranjang kosong'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -274,7 +274,7 @@ class _CashierScreenState extends State<CashierScreen> {
         cashGiven < _grandTotal) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Uang tunai kurang. Minimal ${_formatRupiah(_grandTotal)}'),
+          content: const Text('Uang tunai kurang'),
           backgroundColor: AppColors.statusCancelled,
           behavior: SnackBarBehavior.floating,
         ),
@@ -372,7 +372,7 @@ class _CashierScreenState extends State<CashierScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Pesanan ${newOrder.invoiceNo} berhasil dibuat & masuk antrian dapur!'),
+            content: Text('Pesanan ${newOrder.invoiceNo} dibuat'),
             backgroundColor: AppColors.statusPending,
             behavior: SnackBarBehavior.floating,
           ),
@@ -382,8 +382,8 @@ class _CashierScreenState extends State<CashierScreen> {
       if (!mounted) return;
       Navigator.pop(context); // close progress dialog
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal memproses pesanan: $e'),
+        const SnackBar(
+          content: Text('Gagal memproses pesanan'),
           backgroundColor: AppColors.statusCancelled,
           behavior: SnackBarBehavior.floating,
         ),
@@ -455,7 +455,7 @@ class _CashierScreenState extends State<CashierScreen> {
               ListTile(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 leading: const Icon(Icons.edit_rounded, color: AppColors.primary),
-                title: const Text('Ubah Data Produk'),
+                title: const Text('Edit Produk'),
                 onTap: () {
                   Navigator.pop(ctx);
                   _openEditProduct(product);
@@ -464,7 +464,7 @@ class _CashierScreenState extends State<CashierScreen> {
               ListTile(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 leading: const Icon(Icons.delete_outline_rounded, color: AppColors.statusCancelled),
-                title: const Text('Hapus Produk dari Menu'),
+                title: const Text('Hapus Produk'),
                 onTap: () {
                   Navigator.pop(ctx);
                   _confirmDeleteProduct(product);
@@ -490,7 +490,7 @@ class _CashierScreenState extends State<CashierScreen> {
           ],
         ),
         content: Text(
-          'Apakah Anda yakin ingin menghapus "${product.name}" dari katalog? Data produk akan dihapus secara permanen.',
+          'Hapus "${product.name}" secara permanen?',
         ),
         actions: [
           TextButton(
@@ -512,8 +512,8 @@ class _CashierScreenState extends State<CashierScreen> {
                 await _loadProducts();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Produk "${product.name}" berhasil dihapus.'),
+                    const SnackBar(
+                      content: Text('Produk dihapus'),
                       backgroundColor: AppColors.statusCompleted,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -522,8 +522,8 @@ class _CashierScreenState extends State<CashierScreen> {
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal menghapus produk: $e'),
+                    const SnackBar(
+                      content: Text('Gagal menghapus produk'),
                       backgroundColor: AppColors.statusCancelled,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -968,7 +968,7 @@ class _CashierScreenState extends State<CashierScreen> {
                     onChanged: (v) => setState(() => _search = v),
                     style: TextStyle(fontSize: big ? 15 : 14),
                     decoration: InputDecoration(
-                      hintText: 'Cari menu makanan atau minuman...',
+                      hintText: 'Cari menu...',
                       prefixIcon: const Icon(Icons.search_rounded),
                       filled: true,
                       fillColor: isDark ? AppColors.darkCard : AppColors.lightBg,
@@ -1058,7 +1058,7 @@ class _CashierScreenState extends State<CashierScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            '${_pendingOrders.length} pesanan meja menunggu dicek (${_pendingTablesSummary()}). Tanya nomor meja pelanggan lalu cek di Pesanan.',
+                            '${_pendingOrders.length} pesanan meja (${_pendingTablesSummary()})',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -1120,9 +1120,9 @@ class _CashierScreenState extends State<CashierScreen> {
                                 const SizedBox(height: 18),
                                 Text(
                                   _products.isEmpty
-                                      ? 'Menu Restoran Masih Kosong'
+                                      ? 'Menu Kosong'
                                       : (_products.every((p) => p.stock <= 0)
-                                          ? 'Semua Stok Produk Habis'
+                                          ? 'Stok Habis'
                                           : 'Menu Tidak Ditemukan'),
                                   style: AppFonts.display(
                                     fontSize: 18,
@@ -1134,10 +1134,10 @@ class _CashierScreenState extends State<CashierScreen> {
                                 const SizedBox(height: 8),
                                 Text(
                                   _products.isEmpty
-                                      ? 'Tambahkan menu makanan atau minuman beserta harga, stok, dan foto asli melalui form tambah produk.'
+                                      ? 'Tambahkan menu untuk memulai.'
                                       : (_products.every((p) => p.stock <= 0)
-                                          ? 'Produk yang kehabisan stok otomatis disembunyikan dari dashboard kasir. Silakan perbarui stok atau masukkan produk baru.'
-                                          : 'Tidak ada produk yang cocok dengan pencarian "$_search" atau filter kategori "$_selectedCategory".'),
+                                          ? 'Perbarui stok produk.'
+                                          : 'Tidak ada produk yang cocok.'),
                                   style: TextStyle(fontSize: 13, color: muted, height: 1.4),
                                   textAlign: TextAlign.center,
                                 ),
@@ -1151,9 +1151,9 @@ class _CashierScreenState extends State<CashierScreen> {
                                   ),
                                   onPressed: _openAddProduct,
                                   icon: const Icon(Icons.add_circle_outline_rounded),
-                                  label: Text(
-                                    _products.isEmpty ? 'Masukkan Produk Pertama' : 'Tambah Produk Baru',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  label: const Text(
+                                    'Tambah Produk',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -1264,12 +1264,12 @@ class _CashierScreenState extends State<CashierScreen> {
                 ),
                 IconButton(
                   icon: Icon(Icons.edit_outlined, color: isDark ? AppColors.darkMuted : AppColors.lightMuted, size: 20),
-                  tooltip: 'Ubah Produk & Deskripsi',
+                  tooltip: 'Edit Produk',
                   onPressed: () => _openEditProduct(p),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, color: AppColors.statusCancelled, size: 22),
-                  tooltip: 'Hapus Produk',
+                  tooltip: 'Hapus',
                   onPressed: () => _confirmDeleteProduct(p),
                 ),
                 const SizedBox(width: 4),
@@ -1284,7 +1284,7 @@ class _CashierScreenState extends State<CashierScreen> {
                   ),
                   onPressed: out ? null : () => _addToCart(p),
                   child: Text(
-                    out ? 'Habis' : '+ Tambah',
+                    out ? 'Habis' : 'Tambah',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ),
@@ -1534,7 +1534,7 @@ class _CashierScreenState extends State<CashierScreen> {
                                 size: 48, color: muted),
                             const SizedBox(height: 8),
                             Text(
-                              'Keranjang masih kosong',
+                              'Keranjang kosong',
                               style: TextStyle(fontSize: 13, color: muted),
                             ),
                           ],
@@ -1687,7 +1687,7 @@ class _CashierScreenState extends State<CashierScreen> {
                           onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
                             isDense: true,
-                            labelText: 'Uang Tunai Diterima (Rp)',
+                            labelText: 'Uang Tunai',
                             hintText: 'Contoh: 50000',
                             prefixText: 'Rp ',
                             contentPadding:
@@ -1821,7 +1821,7 @@ class _CashierScreenState extends State<CashierScreen> {
                                   ? null
                                   : () => _processCheckout(targetStatus: 'pesanan dibuat'),
                               child: Text(
-                                'Simpan (Belum Bayar)',
+                                'Simpan',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: big ? 13 : 12,
@@ -1858,10 +1858,10 @@ class _CashierScreenState extends State<CashierScreen> {
                               ),
                               label: Text(
                                 isQris
-                                    ? 'Bayar QRIS (Scan Kamera)'
+                                    ? 'Scan QRIS'
                                     : (isBank
-                                        ? 'Bayar Transfer Bank'
-                                        : (isDebit ? 'Bayar Kartu Debit' : 'Bayar & Cetak Nota')),
+                                        ? 'Transfer Bank'
+                                        : (isDebit ? 'Kartu Debit' : 'Bayar')),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: big ? 14 : 13,

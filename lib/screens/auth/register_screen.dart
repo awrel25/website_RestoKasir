@@ -188,7 +188,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 24),
             PrimaryButton(
-              text: 'Daftar Akun RestoKasir',
+              text: 'Daftar',
               onPressed: loading ? null : register,
               loading: loading,
             ),
@@ -207,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       MaterialPageRoute(builder: (_) => const LoginScreen()),
                     ),
                     child: const Text(
-                      'Masuk',
+                      'Login',
                       style: TextStyle(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w700,

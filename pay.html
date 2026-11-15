@@ -331,9 +331,9 @@
 
     <div class="pay-card">
       <div id="checkoutView">
-        <span class="badge-qris">Verifikasi Pembayaran Kasir</span>
+        <span class="badge-qris">QRIS</span>
         <h1 class="merchant-title" id="merchantName">RestoKasir Nusantara</h1>
-        <p class="merchant-sub">Konfirmasi pembayaran langsung ke sistem kasir</p>
+        <p class="merchant-sub">Pembayaran pesanan kasir</p>
 
         <div class="amount-box">
           <div class="amount-label">Total Pembayaran</div>
@@ -342,11 +342,11 @@
 
         <div class="meta-card">
           <div class="meta-row">
-            <span>Nomor Nota</span>
+            <span>No. Nota</span>
             <strong id="invoiceDisplay">-</strong>
           </div>
           <div class="meta-row" id="tableMetaRow" hidden>
-            <span>Nomor Meja</span>
+            <span>Meja</span>
             <strong id="tableDisplay">-</strong>
           </div>
           <div class="meta-row">
@@ -356,11 +356,11 @@
         </div>
 
         <div class="table-reminder" id="tableReminder" hidden>
-          Setelah pembayaran selesai, sebutkan <strong id="tableReminderNumber">Meja 1</strong> ke kasir agar pesanan dicek di aplikasi kasir.
+          Sebutkan <strong id="tableReminderNumber">Meja 1</strong> ke kasir setelah membayar.
         </div>
 
         <button type="button" class="btn-pay" id="btnCompletePay">
-          Selesaikan Pembayaran
+          Konfirmasi Bayar
         </button>
 
         <div class="error-box" id="errorBox" hidden></div>
@@ -374,10 +374,10 @@
         </div>
         <h2 class="success-title">Pembayaran Berhasil</h2>
         <p class="success-desc">
-          Status pesanan sudah diperbarui menjadi selesai di aplikasi kasir.
+          Status pesanan lunas.
         </p>
         <div class="success-box" id="successDetailBox">
-          Anda dapat menutup halaman ini. Struk akan dicetak oleh kasir.
+          Tutup halaman ini. Kasir akan mencetak struk.
         </div>
       </div>
     </div>
@@ -428,7 +428,7 @@
       const errBox = document.getElementById('errorBox');
       errBox.hidden = true;
       btn.disabled = true;
-      btn.textContent = 'Memproses pembayaran...';
+      btn.textContent = 'Memproses...';
 
       try {
         let filterQuery = '';
@@ -459,25 +459,16 @@
 
         if (tableNum && tableNum >= 1) {
           document.getElementById('successDetailBox').textContent =
-            'Pembayaran ' +
-            formatRupiah(amount) +
-            ' selesai. Sebutkan Meja ' +
-            tableNum +
-            ' ke kasir untuk verifikasi dan cetak struk.';
+            'Sebutkan Meja ' + tableNum + ' ke kasir untuk cetak struk.';
         } else {
           document.getElementById('successDetailBox').textContent =
-            'Pembayaran ' +
-            formatRupiah(amount) +
-            ' selesai (' +
-            invoiceNo +
-            '). Struk akan otomatis dicetak oleh kasir.';
+            'Struk akan dicetak oleh kasir (' + invoiceNo + ').';
         }
       } catch (err) {
         errBox.hidden = false;
-        errBox.textContent =
-          'Gagal memperbarui status pembayaran: ' + (err.message || 'kesalahan jaringan');
+        errBox.textContent = 'Gagal memproses pembayaran';
         btn.disabled = false;
-        btn.textContent = 'Selesaikan Pembayaran';
+        btn.textContent = 'Konfirmasi Bayar';
       }
     }
   </script>

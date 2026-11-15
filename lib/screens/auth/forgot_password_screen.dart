@@ -47,14 +47,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   bool _validateEmail(String email) {
     if (email.isEmpty) {
-      showMessage('Silakan masukkan alamat email akun Anda.');
+      showMessage('Masukkan email Anda');
       return false;
     }
     final emailRegex = RegExp(
       r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$',
     );
     if (!emailRegex.hasMatch(email)) {
-      showMessage('Format alamat email tidak valid (contoh: kasir@restoran.com).');
+      showMessage('Format email tidak valid');
       return false;
     }
     return true;
@@ -63,7 +63,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> sendOtpCode() async {
     if (_cooldownSeconds > 0) {
       showMessage(
-        'Harap tunggu $_cooldownSeconds detik sebelum meminta kode baru.',
+        'Tunggu $_cooldownSeconds detik',
       );
       return;
     }
@@ -91,7 +91,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (!mounted) return;
       _startCooldown(60);
-      showMessage('Kode OTP 6-digit berhasil dikirimkan ke $email.');
+      showMessage('OTP dikirim ke $email');
 
       Navigator.push(
         context,
@@ -158,13 +158,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const BrandHeader(
-                title: 'Lupa Kata Sandi',
-                subtitle: 'Masukkan alamat email Anda untuk menerima kode OTP 6-digit pemulihan akun.',
+                title: 'Reset Password',
+                subtitle: 'Masukkan email untuk menerima kode OTP.',
               ),
               const SizedBox(height: 24),
               AuthField(
                 controller: emailController,
-                label: 'Email Terdaftar',
+                label: 'Email',
                 hint: 'nama@email.com',
                 icon: Icons.mail_outline_rounded,
                 keyboardType: TextInputType.emailAddress,
@@ -173,7 +173,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               PrimaryButton(
                 text: _cooldownSeconds > 0
                     ? 'Tunggu (${_cooldownSeconds}s)'
-                    : 'Kirim Kode OTP',
+                    : 'Kirim OTP',
                 onPressed: (loading || _cooldownSeconds > 0) ? null : sendOtpCode,
                 loading: loading,
               ),

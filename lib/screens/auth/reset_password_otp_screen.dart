@@ -106,7 +106,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
       });
 
       _startResendTimer();
-      showMessage('Kode OTP baru telah dikirimkan ke ${widget.email}');
+      showMessage('OTP baru dikirim ke ${widget.email}');
       otpFocusNode.requestFocus();
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
@@ -142,7 +142,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
     final token = otpController.text.trim();
 
     if (token.length != 6 || !RegExp(r'^\d{6}$').hasMatch(token)) {
-      showMessage('Kode OTP harus terdiri dari 6 digit angka.');
+      showMessage('OTP harus 6 digit');
       return;
     }
 
@@ -172,7 +172,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
 
       if (!mounted) return;
 
-      showMessage('Kode OTP valid! Silakan atur kata sandi baru Anda.');
+      showMessage('OTP valid');
 
       Navigator.pushReplacement(
         context,
@@ -187,18 +187,18 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
       });
 
       if (msg.contains('expired') || msg.contains('token has expired')) {
-        showMessage('Kode OTP telah kedaluwarsa. Silakan tekan "Kirim Ulang Kode OTP".');
+        showMessage('OTP kedaluwarsa');
       } else if (msg.contains('invalid') || msg.contains('token is invalid') || msg.contains('token is not valid')) {
         if (remainingAttempts > 0) {
-          showMessage('Kode OTP tidak sesuai. Sisa kesempatan: $remainingAttempts kali.');
+          showMessage('OTP salah. Sisa: $remainingAttempts');
         } else {
-          showMessage('Kesempatan mencoba habis. Silakan kirim ulang kode OTP baru.');
+          showMessage('Kesempatan habis. Kirim ulang OTP baru.');
         }
       } else {
         showMessage(e.message);
       }
     } catch (e) {
-      showMessage('Verifikasi OTP gagal. Silakan periksa kembali koneksi internet Anda.');
+      showMessage('Verifikasi OTP gagal');
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -237,14 +237,14 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
       body: SafeArea(
         child: ResponsiveAuthLayout(
           bannerTitle: 'Verifikasi OTP',
-          bannerSubtitle: 'Verifikasi identitas akun Anda.',
+          bannerSubtitle: 'Verifikasi identitas Anda.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               const BrandHeader(
                 title: 'Verifikasi OTP',
-                subtitle: 'Masukkan kode OTP yang dikirim ke:',
+                subtitle: 'Masukkan kode OTP:',
               ),
               const SizedBox(height: 8),
               Container(
@@ -303,7 +303,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
               ),
               const SizedBox(height: 24),
               PrimaryButton(
-                text: 'Verifikasi & Lanjutkan',
+                text: 'Verifikasi',
                 onPressed: (loading || otpCode.length != 6 || remainingAttempts <= 0)
                     ? null
                     : verifyOtp,
@@ -320,7 +320,7 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
                           color: AppColors.primary,
                         ),
                         label: const Text(
-                          'Kirim Ulang Kode OTP',
+                          'Kirim Ulang OTP',
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w700,

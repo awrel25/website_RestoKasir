@@ -140,8 +140,8 @@ class _TableQrDialogState extends State<TableQrDialog> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal mencetak stiker QR meja: $e'),
+        const SnackBar(
+          content: Text('Gagal cetak QR'),
           backgroundColor: AppColors.statusCancelled,
         ),
       );
@@ -199,7 +199,7 @@ class _TableQrDialogState extends State<TableQrDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'QR Code Meja Pelanggan',
+                                      'QR Meja',
                                       style: AppFonts.display(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700,
@@ -207,7 +207,7 @@ class _TableQrDialogState extends State<TableQrDialog> {
                                       ),
                                     ),
                                     const Text(
-                                      'Scan untuk memesan menu dari meja',
+                                      'Pindai untuk pesan menu',
                                       style: TextStyle(
                                         color: Colors.white70,
                                         fontSize: 11,
@@ -237,7 +237,7 @@ class _TableQrDialogState extends State<TableQrDialog> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Pilih Nomor Meja:',
+                              'Pilih Meja:',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -388,10 +388,10 @@ class _TableQrDialogState extends State<TableQrDialog> {
                                   border: Border.all(
                                       color: AppColors.amber.withAlpha(120)),
                                 ),
-                                child: Text(
-                                  'Scan QR untuk memesan. Setelah mengirim pesanan, sebutkan Nomor Meja $_selectedTable ke kasir untuk dicek.',
+                                child: const Text(
+                                  'Pindai QR untuk pesan dari meja.',
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.yellowText,
@@ -427,9 +427,9 @@ class _TableQrDialogState extends State<TableQrDialog> {
                             ),
                             onPressed: _printTableSticker,
                             icon: const Icon(Icons.print_rounded, size: 20),
-                            label: Text(
-                              'Cetak Stiker QR Meja $_selectedTable',
-                              style: const TextStyle(
+                            label: const Text(
+                              'Cetak QR',
+                              style: TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -450,17 +450,16 @@ class _TableQrDialogState extends State<TableQrDialog> {
                               Clipboard.setData(
                                   ClipboardData(text: _tableMenuUrl));
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'URL Menu Meja $_selectedTable disalin ke clipboard!'),
+                                const SnackBar(
+                                  content: Text('Tautan disalin'),
                                   behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 2),
+                                  duration: Duration(seconds: 2),
                                 ),
                               );
                             },
                             icon: const Icon(Icons.copy_rounded, size: 18),
                             label: const Text(
-                              'Salin URL Meja untuk Dibagikan',
+                              'Salin Tautan',
                               style: TextStyle(
                                   fontSize: 12, fontWeight: FontWeight.w700),
                             ),
