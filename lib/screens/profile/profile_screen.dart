@@ -472,7 +472,6 @@ class _ProfileScreenState extends State<ProfileScreen>
         );
       },
     );
-    );
   }
 
   Future<void> _updateAvatar(String newUrl) async {
