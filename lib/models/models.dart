@@ -28,6 +28,20 @@ class DbProduct {
   });
 
   factory DbProduct.fromMap(Map<String, dynamic> map) {
+    String rawIcon = map['icon_name']?.toString() ?? 'fastfood';
+    String? rawDesc = map['description']?.toString() ?? map['deskripsi']?.toString();
+
+    // Ekstraksi fallback deskripsi jika tersimpan dengan format 'icon#DESC#deskripsi'
+    if ((rawDesc == null || rawDesc.trim().isEmpty) && rawIcon.contains('#DESC#')) {
+      final parts = rawIcon.split('#DESC#');
+      rawIcon = parts[0].trim();
+      if (parts.length > 1) {
+        rawDesc = parts.sublist(1).join('#DESC#').trim();
+      }
+    } else if (rawIcon.contains('#DESC#')) {
+      rawIcon = rawIcon.split('#DESC#')[0].trim();
+    }
+
     return DbProduct(
       id: map['id']?.toString() ?? '',
       restoId: map['resto_id']?.toString(),
@@ -40,9 +54,9 @@ class DbProduct {
           ? map['stock'] as int
           : int.tryParse(map['stock']?.toString() ?? '0') ?? 0,
       isAvailable: map['is_available'] == true,
-      iconName: map['icon_name']?.toString() ?? 'fastfood',
+      iconName: rawIcon.isNotEmpty ? rawIcon : 'fastfood',
       imageUrl: map['image_url']?.toString(),
-      description: map['description']?.toString() ?? map['deskripsi']?.toString(),
+      description: rawDesc != null && rawDesc.trim().isNotEmpty ? rawDesc.trim() : null,
     );
   }
 

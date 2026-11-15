@@ -267,6 +267,14 @@ class PosService {
   }) async {
     final restoId = await fetchRestaurantId();
 
+    final cleanDesc = description?.trim();
+    final cleanIcon = iconName.contains('#DESC#')
+        ? iconName.split('#DESC#')[0].trim()
+        : iconName.trim();
+    final compositeIcon = (cleanDesc != null && cleanDesc.isNotEmpty)
+        ? '$cleanIcon#DESC#$cleanDesc'
+        : cleanIcon;
+
     final basePayload = {
       'resto_id': restoId,
       'name': name.trim(),
@@ -274,13 +282,12 @@ class PosService {
       'price': price,
       'stock': stock,
       'is_available': stock > 0,
-      'icon_name': iconName,
+      'icon_name': compositeIcon,
       'image_url': imageUrl != null && imageUrl.trim().isNotEmpty
           ? imageUrl.trim()
           : null,
     };
 
-    final cleanDesc = description?.trim();
     final extendedPayload = {
       ...basePayload,
       if (cleanDesc != null && cleanDesc.isNotEmpty)
@@ -339,17 +346,24 @@ class PosService {
     String? imageUrl,
     String iconName = 'fastfood',
   }) async {
+    final cleanDesc = description?.trim();
+    final cleanIcon = iconName.contains('#DESC#')
+        ? iconName.split('#DESC#')[0].trim()
+        : iconName.trim();
+    final compositeIcon = (cleanDesc != null && cleanDesc.isNotEmpty)
+        ? '$cleanIcon#DESC#$cleanDesc'
+        : cleanIcon;
+
     final basePayload = {
       'name': name.trim(),
       'category': category.trim(),
       'price': price,
       'stock': stock,
       'is_available': stock > 0,
-      'icon_name': iconName,
+      'icon_name': compositeIcon,
       if (imageUrl != null) 'image_url': imageUrl.trim(),
     };
 
-    final cleanDesc = description?.trim();
     final extendedPayload = {
       ...basePayload,
       if (description != null)

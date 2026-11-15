@@ -715,6 +715,23 @@ function buildStepperOrAddHtml(product, inCart) {
   );
 }
 
+function getProductDescription(p) {
+  if (!p) return '';
+  if (p.description && String(p.description).trim()) {
+    return String(p.description).trim();
+  }
+  if (p.deskripsi && String(p.deskripsi).trim()) {
+    return String(p.deskripsi).trim();
+  }
+  if (p.icon_name && String(p.icon_name).includes('#DESC#')) {
+    const parts = String(p.icon_name).split('#DESC#');
+    if (parts.length > 1 && parts.slice(1).join('#DESC#').trim()) {
+      return parts.slice(1).join('#DESC#').trim();
+    }
+  }
+  return '';
+}
+
 function renderMenuGrid() {
   if (!tableValidated) return;
   const menuGrid = document.getElementById('menuGrid');
@@ -778,7 +795,7 @@ function renderMenuGrid() {
           '" loading="lazy" onerror="this.remove()" />'
         : '';
 
-      const rawDesc = String(p.description || p.deskripsi || '').trim();
+      const rawDesc = getProductDescription(p);
       const descHtml = rawDesc
         ? '<div class="menu-desc-container"><p class="menu-desc-snippet">' +
           escapeHtml(rawDesc) +
@@ -887,11 +904,11 @@ function renderProductDetailDialog(productId) {
     '<div class="detail-desc-box">' +
     '<div class="detail-desc-label">Deskripsi Lengkap</div>' +
     '<p class="detail-desc' +
-    (String(product.description || product.deskripsi || '').trim() ? '' : ' text-muted') +
+    (getProductDescription(product) ? '' : ' text-muted') +
     '">' +
     escapeHtml(
-      String(product.description || product.deskripsi || '').trim()
-        ? String(product.description || product.deskripsi || '').trim()
+      getProductDescription(product)
+        ? getProductDescription(product)
         : 'Belum ada deskripsi makanan yang dicantumkan pada aplikasi kasir.'
     ) +
     '</p>' +
