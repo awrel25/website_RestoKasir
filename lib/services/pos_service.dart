@@ -280,10 +280,11 @@ class PosService {
           : null,
     };
 
+    final cleanDesc = description?.trim();
     final extendedPayload = {
       ...basePayload,
-      if (description != null && description.trim().isNotEmpty)
-        'description': description.trim(),
+      if (cleanDesc != null && cleanDesc.isNotEmpty)
+        'description': cleanDesc,
     };
 
     Map<String, dynamic> res;
@@ -297,6 +298,25 @@ class PosService {
       if (e.code == '42703' ||
           e.message.contains('column') ||
           e.message.contains('description')) {
+        // Coba gunakan kolom alternatif 'deskripsi' jika ada
+        try {
+          final deskripsiPayload = {
+            ...basePayload,
+            if (cleanDesc != null && cleanDesc.isNotEmpty)
+              'deskripsi': cleanDesc,
+          };
+          res = await supabase
+              .from('products')
+              .insert(deskripsiPayload)
+              .select()
+              .single();
+          return DbProduct.fromMap(res);
+        } catch (_) {}
+
+        debugPrint(
+          '⚠️ [PosService] Kolom description belum tersedia di Supabase. '
+          'Jalankan skrip supabase_fix_product_description_and_receipt.sql di SQL Editor.',
+        );
         res = await supabase
             .from('products')
             .insert(basePayload)
@@ -329,9 +349,11 @@ class PosService {
       if (imageUrl != null) 'image_url': imageUrl.trim(),
     };
 
+    final cleanDesc = description?.trim();
     final extendedPayload = {
       ...basePayload,
-      if (description != null) 'description': description.trim(),
+      if (description != null)
+        'description': cleanDesc != null && cleanDesc.isNotEmpty ? cleanDesc : null,
     };
 
     try {
@@ -343,6 +365,24 @@ class PosService {
       if (e.code == '42703' ||
           e.message.contains('column') ||
           e.message.contains('description')) {
+        // Coba alternatif kolom 'deskripsi'
+        try {
+          final deskripsiPayload = {
+            ...basePayload,
+            if (description != null)
+              'deskripsi': cleanDesc != null && cleanDesc.isNotEmpty ? cleanDesc : null,
+          };
+          await supabase
+              .from('products')
+              .update(deskripsiPayload)
+              .eq('id', productId);
+          return;
+        } catch (_) {}
+
+        debugPrint(
+          '⚠️ [PosService] Kolom description belum tersedia di Supabase saat update. '
+          'Jalankan skrip supabase_fix_product_description_and_receipt.sql di SQL Editor.',
+        );
         await supabase
             .from('products')
             .update(basePayload)

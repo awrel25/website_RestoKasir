@@ -42,7 +42,7 @@ class DbProduct {
       isAvailable: map['is_available'] == true,
       iconName: map['icon_name']?.toString() ?? 'fastfood',
       imageUrl: map['image_url']?.toString(),
-      description: map['description']?.toString(),
+      description: map['description']?.toString() ?? map['deskripsi']?.toString(),
     );
   }
 
@@ -57,8 +57,8 @@ class DbProduct {
       'is_available': isAvailable,
       'icon_name': iconName,
       'image_url': imageUrl,
-      if (description != null && description!.isNotEmpty)
-        'description': description,
+      if (description != null)
+        'description': description!.trim().isNotEmpty ? description!.trim() : null,
     };
   }
 

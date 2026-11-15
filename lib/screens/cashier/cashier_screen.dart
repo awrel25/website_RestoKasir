@@ -409,6 +409,86 @@ class _CashierScreenState extends State<CashierScreen> {
     ).then((_) => _loadProducts());
   }
 
+  void _openEditProduct(DbProduct product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddProductScreen(
+          productToEdit: product,
+          onProductAdded: _loadProducts,
+        ),
+      ),
+    ).then((_) => _loadProducts());
+  }
+
+  void _showProductOptions(DbProduct product) {
+    final isDark = ThemeController.isDark(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppColors.darkCard : AppColors.lightCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withAlpha(100),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                product.name,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              if (product.description != null && product.description!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  product.description!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                leading: const Icon(Icons.edit_rounded, color: AppColors.primary),
+                title: const Text('Ubah Produk & Deskripsi'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openEditProduct(product);
+                },
+              ),
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                leading: const Icon(Icons.delete_outline_rounded, color: AppColors.statusCancelled),
+                title: const Text('Hapus Produk dari Menu'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _confirmDeleteProduct(product);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _confirmDeleteProduct(DbProduct product) {
     showDialog(
       context: context,
@@ -1147,7 +1227,7 @@ class _CashierScreenState extends State<CashierScreen> {
         margin: EdgeInsets.zero,
         child: InkWell(
           onTap: out ? null : () => _addToCart(p),
-          onLongPress: () => _confirmDeleteProduct(p),
+          onLongPress: () => _showProductOptions(p),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -1207,7 +1287,11 @@ class _CashierScreenState extends State<CashierScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, color: isDark ? AppColors.darkMuted : AppColors.lightMuted, size: 20),
+                  tooltip: 'Ubah Produk & Deskripsi',
+                  onPressed: () => _openEditProduct(p),
+                ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, color: AppColors.statusCancelled, size: 22),
                   tooltip: 'Hapus Produk',
@@ -1244,7 +1328,7 @@ class _CashierScreenState extends State<CashierScreen> {
       margin: EdgeInsets.zero,
       child: InkWell(
         onTap: out ? null : () => _addToCart(p),
-        onLongPress: () => _confirmDeleteProduct(p),
+        onLongPress: () => _showProductOptions(p),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1259,24 +1343,49 @@ class _CashierScreenState extends State<CashierScreen> {
                   Positioned(
                     top: 8,
                     left: 8,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => _confirmDeleteProduct(p),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(140),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.delete_outline_rounded,
-                            size: 15,
-                            color: Colors.white,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _openEditProduct(p),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(150),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.edit_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _confirmDeleteProduct(p),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(150),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.delete_outline_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Positioned(

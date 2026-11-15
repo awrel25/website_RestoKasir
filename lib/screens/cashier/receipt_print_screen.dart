@@ -8,7 +8,9 @@ import 'package:my_app/models/models.dart';
 import 'package:my_app/core/theme/theme_controller.dart';
 import 'package:my_app/core/utils/responsive.dart';
 
-class ReceiptPrintScreen extends StatelessWidget {
+enum PaperRollSize { mm58, mm80 }
+
+class ReceiptPrintScreen extends StatefulWidget {
   final DbOrder order;
   final String restaurantName;
   final int cashAmount;
@@ -20,6 +22,20 @@ class ReceiptPrintScreen extends StatelessWidget {
     this.cashAmount = 0,
   });
 
+  @override
+  State<ReceiptPrintScreen> createState() => _ReceiptPrintScreenState();
+}
+
+class _ReceiptPrintScreenState extends State<ReceiptPrintScreen> {
+  static const roll58 = PdfPageFormat(
+    58 * PdfPageFormat.mm,
+    double.infinity,
+    marginAll: 3 * PdfPageFormat.mm,
+  );
+  static const roll80 = PdfPageFormat.roll80;
+
+  PaperRollSize _selectedPaper = PaperRollSize.mm80;
+
   String _formatRupiah(int value) {
     final formatter = NumberFormat.currency(
       locale: 'id_ID',
@@ -29,86 +45,222 @@ class ReceiptPrintScreen extends StatelessWidget {
     return formatter.format(value);
   }
 
+  PdfPageFormat get _currentPageFormat {
+    return _selectedPaper == PaperRollSize.mm58 ? roll58 : roll80;
+  }
+
+  pw.Widget _buildPdfDashedDivider() {
+    return pw.Divider(
+      thickness: 0.8,
+      borderStyle: pw.BorderStyle.dashed,
+      color: PdfColors.grey700,
+    );
+  }
+
+  pw.Widget _buildPdfMetaRow(String label, String value, bool is58mm) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2.2),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: is58mm ? 7.5 : 8.5,
+              color: PdfColors.grey800,
+            ),
+          ),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: is58mm ? 7.5 : 8.5,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfSummaryRow(String label, String value, bool is58mm) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2.0),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: is58mm ? 8.0 : 9.0,
+              color: PdfColors.grey900,
+            ),
+          ),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: is58mm ? 8.0 : 9.0,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<Uint8List> _generatePdfReceipt(PdfPageFormat format) async {
     final pdf = pw.Document();
 
-    // Standard receipt roll width (typically 58mm or 80mm)
-    final receiptFormat = PdfPageFormat.roll80;
+    final bool is58mm =
+        (format.availableWidth <= 220) || (_selectedPaper == PaperRollSize.mm58);
+    final targetPageFormat = is58mm ? roll58 : roll80;
 
-    final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'id_ID');
-    final formattedDate = dateFormat.format(order.createdAt);
+    final dateOnlyFormat = DateFormat('dd/MM/yyyy', 'id_ID');
+    final timeOnlyFormat = DateFormat('HH:mm WIB', 'id_ID');
+    final fullDateFormat = DateFormat('dd/MM/yyyy HH:mm', 'id_ID');
 
-    final int changeAmount = (cashAmount > order.total) ? cashAmount - order.total : 0;
+    final formattedFullDate = fullDateFormat.format(widget.order.createdAt);
+    final formattedDate = dateOnlyFormat.format(widget.order.createdAt);
+    final formattedTime = timeOnlyFormat.format(widget.order.createdAt);
+
+    final int changeAmount = (widget.cashAmount > widget.order.total)
+        ? widget.cashAmount - widget.order.total
+        : 0;
 
     pdf.addPage(
       pw.Page(
-        pageFormat: receiptFormat,
+        pageFormat: targetPageFormat,
         build: (pw.Context context) {
           return pw.Container(
-            padding: const pw.EdgeInsets.all(12),
+            padding: pw.EdgeInsets.symmetric(
+              horizontal: is58mm ? 6 : 14,
+              vertical: is58mm ? 10 : 16,
+            ),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.center,
               children: [
-                // Header
+                // -------------------------------------------------------------
+                // 1. HEADER RESTORAN
+                // -------------------------------------------------------------
                 pw.Text(
-                  restaurantName,
+                  widget.restaurantName.trim().toUpperCase(),
                   style: pw.TextStyle(
-                    fontSize: 16,
+                    fontSize: is58mm ? 13 : 16,
                     fontWeight: pw.FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 3),
+                pw.Text(
+                  'STRUK PEMBAYARAN RESMI',
+                  style: pw.TextStyle(
+                    fontSize: is58mm ? 7.5 : 8.5,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.grey800,
                   ),
                   textAlign: pw.TextAlign.center,
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  'Struk Resmi Pembayaran Restoran',
-                  style: const pw.TextStyle(fontSize: 9),
+                  formattedFullDate,
+                  style: pw.TextStyle(
+                    fontSize: is58mm ? 7.0 : 8.0,
+                    color: PdfColors.grey700,
+                  ),
                   textAlign: pw.TextAlign.center,
                 ),
+
+                pw.SizedBox(height: 8),
+                _buildPdfDashedDivider(),
                 pw.SizedBox(height: 6),
-                pw.Divider(thickness: 0.8, borderStyle: pw.BorderStyle.dashed),
 
-                // Order Meta
-                pw.SizedBox(height: 4),
-                _buildPdfMetaRow('No. Nota', order.invoiceNo),
-                _buildPdfMetaRow('Waktu', formattedDate),
-                _buildPdfMetaRow('Kasir', order.cashierName),
-                _buildPdfMetaRow('Meja', 'Meja ${order.tableNumber}'),
-                _buildPdfMetaRow('Status', order.status.toUpperCase()),
-                pw.SizedBox(height: 4),
-                pw.Divider(thickness: 0.8, borderStyle: pw.BorderStyle.dashed),
-                pw.SizedBox(height: 4),
+                // -------------------------------------------------------------
+                // 2. INFORMASI TRANSAKSI
+                // -------------------------------------------------------------
+                _buildPdfMetaRow('No. Nota', widget.order.invoiceNo, is58mm),
+                _buildPdfMetaRow('Tanggal', formattedDate, is58mm),
+                _buildPdfMetaRow('Waktu', formattedTime, is58mm),
+                _buildPdfMetaRow(
+                  'Kasir',
+                  widget.order.cashierName.isNotEmpty
+                      ? widget.order.cashierName
+                      : 'Kasir',
+                  is58mm,
+                ),
+                _buildPdfMetaRow('Meja', 'Meja ${widget.order.tableNumber}', is58mm),
+                _buildPdfMetaRow('Metode', widget.order.paymentMethod, is58mm),
+                _buildPdfMetaRow(
+                  'Status',
+                  widget.order.isPaid ? 'LUNAS' : widget.order.status.toUpperCase(),
+                  is58mm,
+                ),
 
-                // Items Table
+                pw.SizedBox(height: 6),
+                _buildPdfDashedDivider(),
+                pw.SizedBox(height: 6),
+
+                // -------------------------------------------------------------
+                // 3. DETAIL PESANAN
+                // -------------------------------------------------------------
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('Menu', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Total', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                    pw.Text(
+                      'MENU / ITEM',
+                      style: pw.TextStyle(
+                        fontSize: is58mm ? 8.0 : 9.0,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    pw.Text(
+                      'SUBTOTAL',
+                      style: pw.TextStyle(
+                        fontSize: is58mm ? 8.0 : 9.0,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 pw.SizedBox(height: 4),
-                ...order.items.map((item) {
+                pw.Divider(thickness: 0.5, color: PdfColors.grey500),
+                pw.SizedBox(height: 2),
+
+                ...widget.order.items.map((item) {
                   return pw.Padding(
-                    padding: const pw.EdgeInsets.symmetric(vertical: 2),
+                    padding: const pw.EdgeInsets.symmetric(vertical: 3.5),
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text(
-                          item.productName,
-                          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
-                        ),
                         pw.Row(
-                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            pw.Text(
-                              '${item.quantity} x ${_formatRupiah(item.price)}',
-                              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+                            pw.Expanded(
+                              child: pw.Text(
+                                item.productName,
+                                style: pw.TextStyle(
+                                  fontSize: is58mm ? 8.5 : 9.5,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                                softWrap: true,
+                              ),
                             ),
+                            pw.SizedBox(width: 8),
                             pw.Text(
                               _formatRupiah(item.subtotal),
-                              style: const pw.TextStyle(fontSize: 9),
+                              style: pw.TextStyle(
+                                fontSize: is58mm ? 8.5 : 9.5,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
                             ),
                           ],
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          '${item.quantity} x ${_formatRupiah(item.price)}',
+                          style: pw.TextStyle(
+                            fontSize: is58mm ? 7.5 : 8.5,
+                            color: PdfColors.grey700,
+                          ),
                         ),
                       ],
                     ),
@@ -116,56 +268,116 @@ class ReceiptPrintScreen extends StatelessWidget {
                 }),
 
                 pw.SizedBox(height: 6),
-                pw.Divider(thickness: 0.8, borderStyle: pw.BorderStyle.dashed),
-                pw.SizedBox(height: 4),
+                _buildPdfDashedDivider(),
+                pw.SizedBox(height: 6),
 
-                // Payment Summary
-                _buildPdfSummaryRow('Subtotal', _formatRupiah(order.subtotal)),
-                _buildPdfSummaryRow('Biaya Layanan (5%)', _formatRupiah(order.serviceFee)),
-                pw.SizedBox(height: 2),
+                // -------------------------------------------------------------
+                // 4. RINGKASAN PEMBAYARAN
+                // -------------------------------------------------------------
+                _buildPdfSummaryRow(
+                  'Subtotal',
+                  _formatRupiah(widget.order.subtotal),
+                  is58mm,
+                ),
+                if (widget.order.serviceFee > 0)
+                  _buildPdfSummaryRow(
+                    'Biaya Layanan (5%)',
+                    _formatRupiah(widget.order.serviceFee),
+                    is58mm,
+                  ),
+
+                pw.SizedBox(height: 6),
+                pw.Divider(thickness: 1.2, color: PdfColors.black),
+                pw.SizedBox(height: 3),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('TOTAL', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
                     pw.Text(
-                      _formatRupiah(order.total),
-                      style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+                      'TOTAL',
+                      style: pw.TextStyle(
+                        fontSize: is58mm ? 12 : 14,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    pw.Text(
+                      _formatRupiah(widget.order.total),
+                      style: pw.TextStyle(
+                        fontSize: is58mm ? 12 : 14,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
-                pw.SizedBox(height: 4),
-                pw.Divider(thickness: 0.8, borderStyle: pw.BorderStyle.dashed),
-                pw.SizedBox(height: 4),
+                pw.SizedBox(height: 3),
+                pw.Divider(thickness: 1.2, color: PdfColors.black),
+                pw.SizedBox(height: 6),
 
-                _buildPdfSummaryRow('Metode Bayar', order.paymentMethod),
-                if (cashAmount > 0) ...[
-                  _buildPdfSummaryRow('Tunai Diterima', _formatRupiah(cashAmount)),
-                  _buildPdfSummaryRow('Kembali', _formatRupiah(changeAmount)),
+                _buildPdfSummaryRow(
+                  'Metode Bayar',
+                  widget.order.paymentMethod,
+                  is58mm,
+                ),
+                if (widget.cashAmount > 0) ...[
+                  _buildPdfSummaryRow(
+                    'Tunai Diterima',
+                    _formatRupiah(widget.cashAmount),
+                    is58mm,
+                  ),
+                  _buildPdfSummaryRow(
+                    'Kembali',
+                    _formatRupiah(changeAmount),
+                    is58mm,
+                  ),
                 ],
 
-                pw.SizedBox(height: 10),
+                // -------------------------------------------------------------
+                // 5. BARCODE & FOOTER ELEGAN
+                // -------------------------------------------------------------
+                pw.SizedBox(height: 12),
                 pw.BarcodeWidget(
-                  data: order.invoiceNo,
+                  data: widget.order.invoiceNo,
                   barcode: pw.Barcode.code128(),
-                  width: 140,
-                  height: 35,
+                  width: is58mm ? 120 : 150,
+                  height: is58mm ? 26 : 32,
                   drawText: false,
                 ),
                 pw.SizedBox(height: 4),
-                pw.Text(order.invoiceNo, style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(
+                  widget.order.invoiceNo,
+                  style: pw.TextStyle(
+                    fontSize: is58mm ? 7.5 : 8.5,
+                    letterSpacing: 1.0,
+                  ),
+                ),
 
+                pw.SizedBox(height: 14),
+                pw.Text(
+                  'TERIMA KASIH ATAS KUNJUNGAN ANDA',
+                  style: pw.TextStyle(
+                    fontSize: is58mm ? 8.0 : 9.5,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 3),
+                pw.Text(
+                  'Selamat Menikmati Hidangan Anda!',
+                  style: pw.TextStyle(
+                    fontSize: is58mm ? 7.0 : 8.5,
+                    color: PdfColors.grey800,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 3),
+                pw.Text(
+                  'Struk ini merupakan bukti transaksi pembayaran yang sah.',
+                  style: pw.TextStyle(
+                    fontSize: is58mm ? 6.5 : 7.5,
+                    color: PdfColors.grey700,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
                 pw.SizedBox(height: 10),
-                pw.Text(
-                  'Terima Kasih Atas Kunjungan Anda!',
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  textAlign: pw.TextAlign.center,
-                ),
-                pw.SizedBox(height: 2),
-                pw.Text(
-                  'Simpan struk ini sebagai bukti pembayaran.',
-                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700),
-                  textAlign: pw.TextAlign.center,
-                ),
               ],
             ),
           );
@@ -174,32 +386,6 @@ class ReceiptPrintScreen extends StatelessWidget {
     );
 
     return pdf.save();
-  }
-
-  pw.Widget _buildPdfMetaRow(String label, String value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 1),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey800)),
-          pw.Text(value, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildPdfSummaryRow(String label, String value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 1.5),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text(label, style: const pw.TextStyle(fontSize: 9)),
-          pw.Text(value, style: const pw.TextStyle(fontSize: 9)),
-        ],
-      ),
-    );
   }
 
   @override
@@ -218,8 +404,8 @@ class ReceiptPrintScreen extends StatelessWidget {
             icon: const Icon(Icons.print_rounded),
             onPressed: () async {
               await Printing.layoutPdf(
-                onLayout: (format) => _generatePdfReceipt(format),
-                name: 'Nota_${order.invoiceNo}.pdf',
+                onLayout: (format) => _generatePdfReceipt(_currentPageFormat),
+                name: 'Nota_${widget.order.invoiceNo}.pdf',
               );
             },
           ),
@@ -227,10 +413,10 @@ class ReceiptPrintScreen extends StatelessWidget {
             tooltip: 'Bagikan PDF',
             icon: const Icon(Icons.share_rounded),
             onPressed: () async {
-              final pdfBytes = await _generatePdfReceipt(PdfPageFormat.roll80);
+              final pdfBytes = await _generatePdfReceipt(_currentPageFormat);
               await Printing.sharePdf(
                 bytes: pdfBytes,
-                filename: 'Nota_${order.invoiceNo}.pdf',
+                filename: 'Nota_${widget.order.invoiceNo}.pdf',
               );
             },
           ),
@@ -239,28 +425,66 @@ class ReceiptPrintScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
+            // Top Toolbar: Paper size toggle & print button
             Container(
-              color: isDark ? AppColors.darkCard : AppColors.lightBorder.withAlpha(80),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
+              ),
               child: MaxWidthBox(
                 maxWidth: 800,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: LayoutBuilder(
                   builder: (context, bc) {
-                    final isNarrow = bc.maxWidth < 460;
+                    final isNarrow = bc.maxWidth < 560;
+
+                    final paperSelector = SegmentedButton<PaperRollSize>(
+                      segments: const [
+                        ButtonSegment(
+                          value: PaperRollSize.mm80,
+                          label: Text('80mm (Standar POS)', style: TextStyle(fontSize: 12)),
+                          icon: Icon(Icons.receipt_long_rounded, size: 16),
+                        ),
+                        ButtonSegment(
+                          value: PaperRollSize.mm58,
+                          label: Text('58mm (Mini POS)', style: TextStyle(fontSize: 12)),
+                          icon: Icon(Icons.receipt_rounded, size: 16),
+                        ),
+                      ],
+                      selected: {_selectedPaper},
+                      onSelectionChanged: (Set<PaperRollSize> selection) {
+                        setState(() {
+                          _selectedPaper = selection.first;
+                        });
+                      },
+                      style: ButtonStyle(
+                        visualDensity: VisualDensity.compact,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    );
+
                     final printBtn = ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       icon: const Icon(Icons.print, size: 18),
-                      label: const Text('Cetak Nota'),
+                      label: const Text(
+                        'Cetak Struk',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       onPressed: () async {
                         await Printing.layoutPdf(
-                          onLayout: (format) => _generatePdfReceipt(format),
-                          name: 'Nota_${order.invoiceNo}.pdf',
+                          onLayout: (format) => _generatePdfReceipt(_currentPageFormat),
+                          name: 'Nota_${widget.order.invoiceNo}.pdf',
                         );
                       },
                     );
@@ -269,41 +493,7 @@ class ReceiptPrintScreen extends StatelessWidget {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withAlpha(35),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(Icons.print_outlined, color: AppColors.primary),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Koneksikan Printer POS',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                        color: isDark ? AppColors.darkText : AppColors.lightText,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Bluetooth, USB POS, WiFi Thermal',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                          Center(child: paperSelector),
                           const SizedBox(height: 10),
                           printBtn,
                         ],
@@ -312,38 +502,8 @@ class ReceiptPrintScreen extends StatelessWidget {
 
                     return Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(35),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(Icons.print_outlined, color: AppColors.primary),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Koneksikan Printer POS',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: isDark ? AppColors.darkText : AppColors.lightText,
-                                ),
-                              ),
-                              Text(
-                                'Mendukung Printer Thermal Bluetooth, USB POS, WiFi, & Cetak Sistem.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
+                        Expanded(child: paperSelector),
+                        const SizedBox(width: 14),
                         printBtn,
                       ],
                     );
@@ -351,16 +511,22 @@ class ReceiptPrintScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+            // Live PDF Preview with Selected Paper Format
             Expanded(
               child: MaxWidthBox(
-                maxWidth: 600,
+                maxWidth: 580,
                 child: PdfPreview(
-                  build: (format) => _generatePdfReceipt(format),
+                  key: ValueKey(_selectedPaper),
+                  build: (format) => _generatePdfReceipt(_currentPageFormat),
                   useActions: false,
                   canChangePageFormat: false,
                   canChangeOrientation: false,
-                  pdfFileName: 'Nota_${order.invoiceNo}.pdf',
-                  previewPageMargin: const EdgeInsets.all(16),
+                  pdfFileName: 'Nota_${widget.order.invoiceNo}.pdf',
+                  previewPageMargin: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   loadingWidget: const Center(
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
