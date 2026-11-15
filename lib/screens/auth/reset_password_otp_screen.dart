@@ -149,20 +149,20 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
     setState(() => loading = true);
 
     try {
-      // Prioritaskan verifikasi OtpType.email (dari signInWithOtp),
-      // dengan fallback ke OtpType.recovery jika menggunakan alur recovery email.
+      // Prioritaskan verifikasi OtpType.recovery (dari resetPasswordForEmail),
+      // dengan fallback ke OtpType.email jika menggunakan alur signInWithOtp.
       AuthResponse? response;
       try {
         response = await supabase.auth.verifyOTP(
           email: widget.email,
           token: token,
-          type: OtpType.email,
+          type: OtpType.recovery,
         );
       } catch (e) {
         response = await supabase.auth.verifyOTP(
           email: widget.email,
           token: token,
-          type: OtpType.recovery,
+          type: OtpType.email,
         );
       }
 
