@@ -164,13 +164,14 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  void _openProfile() async {
+  void _openProfile([int initialTab = 0]) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => ProfileScreen(
           userProfile: _currentProfile,
           restaurantName: widget.restaurantName,
+          initialTabIndex: initialTab,
           onProfileUpdated: (updated) {
             setState(() => _currentProfile = updated);
           },
@@ -1292,64 +1293,278 @@ class _AdminScreenState extends State<AdminScreen>
       onRefresh: _loadDashboardData,
       color: AppColors.primary,
       child: MaxWidthBox(
-        maxWidth: 860,
-        child: ListView.builder(
-          padding: const EdgeInsets.all(12),
-          itemCount: _staff.length,
-          itemBuilder: (context, index) {
-            final member = _staff[index];
-            final isStaffAdmin = member.isAdmin;
+        maxWidth: 960,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 720;
+            final isPhone = Responsive.isPhone(context);
 
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
+            return CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      isPhone ? 12 : 20,
+                      isPhone ? 12 : 20,
+                      isPhone ? 12 : 20,
+                      12,
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.all(isPhone ? 14 : 18),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkCard : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(isDark ? 30 : 6),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(25),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.badge_rounded,
+                                  color: AppColors.primary,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Tim & Absensi Resto',
+                                      style: TextStyle(
+                                        fontSize: isPhone ? 15 : 17,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? AppColors.darkText : AppColors.lightText,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${_staff.length} staf terdaftar • Kelola shift dan rekap absensi',
+                                      style: TextStyle(
+                                        fontSize: isPhone ? 11 : 12,
+                                        color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              FilledButton.icon(
+                                onPressed: () => _openProfile(1),
+                                icon: const Icon(Icons.co_present_rounded, size: 16),
+                                label: const Text('Kelola Absensi Resto'),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => _openProfile(0),
+                                icon: const Icon(Icons.timer_outlined, size: 16),
+                                label: const Text('Absensi Saya'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: isDark ? AppColors.darkText : AppColors.lightText,
+                                  side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (_staff.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.people_outline_rounded,
+                              size: 48,
+                              color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Belum ada staf terdaftar',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: isDark ? AppColors.darkText : AppColors.lightText,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tambahkan staf dari menu Kelola Karyawan di Profil Resto.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                else if (isWide)
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 440,
+                        mainAxisExtent: 96,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final member = _staff[index];
+                          return _buildStaffItemCard(member, isDark);
+                        },
+                        childCount: _staff.length,
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final member = _staff[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: _buildStaffItemCard(member, isDark),
+                          );
+                        },
+                        childCount: _staff.length,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStaffItemCard(UserProfile member, bool isDark) {
+    final isStaffAdmin = member.isAdmin;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _openProfile(1),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
                   backgroundColor: isStaffAdmin
                       ? AppColors.primary
-                      : AppColors.lightMuted,
+                      : (isDark ? AppColors.darkBorder : AppColors.lightMuted),
                   backgroundImage:
                       member.avatarUrl != null && member.avatarUrl!.isNotEmpty
-                      ? NetworkImage(member.avatarUrl!)
-                      : null,
+                          ? NetworkImage(member.avatarUrl!)
+                          : null,
                   child: member.avatarUrl == null || member.avatarUrl!.isEmpty
                       ? Text(
                           member.initials,
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 13,
                           ),
                         )
                       : null,
                 ),
-                title: Text(
-                  member.fullName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        member.fullName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: isDark ? AppColors.darkText : AppColors.lightText,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        member.email.isNotEmpty ? member.email : 'Tidak ada email',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                subtitle: Text(
-                  member.email.isNotEmpty ? member.email : 'Tidak ada email',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: Container(
+                const SizedBox(width: 8),
+                Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
-                    vertical: 3,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        (isStaffAdmin
-                                ? AppColors.primary
-                                : AppColors.statusPending)
-                            .withAlpha(30),
+                    color: (isStaffAdmin
+                            ? AppColors.primary
+                            : AppColors.statusPending)
+                        .withAlpha(28),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -1363,9 +1578,9 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         ),
       ),
     );

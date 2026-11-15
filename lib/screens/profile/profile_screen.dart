@@ -12,12 +12,14 @@ class ProfileScreen extends StatefulWidget {
   final UserProfile userProfile;
   final String restaurantName;
   final ValueChanged<UserProfile>? onProfileUpdated;
+  final int initialTabIndex;
 
   const ProfileScreen({
     super.key,
     required this.userProfile,
     required this.restaurantName,
     this.onProfileUpdated,
+    this.initialTabIndex = 0,
   });
 
   @override
@@ -118,7 +120,11 @@ class _ProfileScreenState extends State<ProfileScreen>
   void initState() {
     super.initState();
     _currentProfile = widget.userProfile;
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(
+      length: 5,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, 4),
+    );
 
     _nameController = TextEditingController(text: _currentProfile.fullName);
     _phoneController = TextEditingController(text: _currentProfile.phone ?? '');
@@ -251,18 +257,21 @@ class _ProfileScreenState extends State<ProfileScreen>
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 580),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 20,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
                     child: Container(
                       width: 40,
                       height: 4,
@@ -458,10 +467,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ],
                 ],
               ),
-            );
-          },
+            ),
+          ),
         );
       },
+    );
     );
   }
 
@@ -653,6 +663,10 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
+          insetPadding: EdgeInsets.symmetric(
+            horizontal: Responsive.isPhone(context) ? 16 : 32,
+            vertical: 24,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -915,9 +929,14 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: Responsive.isPhone(context) ? 16 : 24,
+          vertical: 24,
+        ),
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 360),
+          constraints: BoxConstraints(
+            maxWidth: Responsive.isPhone(context) ? 360 : 400,
+          ),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkCard : Colors.white,
             borderRadius: BorderRadius.circular(24),
@@ -1372,41 +1391,50 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               ),
             ),
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: phone,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: isDark
-                  ? AppColors.darkMuted
-                  : AppColors.lightMuted,
-              indicatorColor: AppColors.primary,
-              indicatorWeight: 3,
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 960),
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: phone || MediaQuery.sizeOf(context).width < 760,
+                  tabAlignment: phone || MediaQuery.sizeOf(context).width < 760
+                      ? TabAlignment.start
+                      : TabAlignment.fill,
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: isDark
+                      ? AppColors.darkMuted
+                      : AppColors.lightMuted,
+                  indicatorColor: AppColors.primary,
+                  indicatorWeight: 3,
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                  tabs: const [
+                    Tab(
+                      icon: Icon(Icons.timer_outlined, size: 20),
+                      text: 'Absensi',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.badge_outlined, size: 20),
+                      text: 'Kelola Karyawan',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.person_outline_rounded, size: 20),
+                      text: 'Edit Profil',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.security_rounded, size: 20),
+                      text: 'Keamanan Sandi',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.settings_outlined, size: 20),
+                      text: 'Preferensi',
+                    ),
+                  ],
+                ),
               ),
-              tabs: const [
-                Tab(
-                  icon: Icon(Icons.timer_outlined, size: 20),
-                  text: 'Absensi',
-                ),
-                Tab(
-                  icon: Icon(Icons.badge_outlined, size: 20),
-                  text: 'Kelola Karyawan',
-                ),
-                Tab(
-                  icon: Icon(Icons.person_outline_rounded, size: 20),
-                  text: 'Edit Profil',
-                ),
-                Tab(
-                  icon: Icon(Icons.security_rounded, size: 20),
-                  text: 'Keamanan Sandi',
-                ),
-                Tab(
-                  icon: Icon(Icons.settings_outlined, size: 20),
-                  text: 'Preferensi',
-                ),
-              ],
             ),
           ),
         ),
@@ -1438,8 +1466,15 @@ class _ProfileScreenState extends State<ProfileScreen>
   // PROFILE HEADER WIDGET
   // ---------------------------------------------------------------------------
   Widget _buildProfileHeader(bool isDark, bool phone) {
+    final att = _todayAttendance;
+    final isClockedIn = att != null && !att.isClockedOut;
+    final isShiftFinished = att != null && att.isClockedOut;
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: phone ? 16 : 24, vertical: 14),
+      padding: EdgeInsets.symmetric(
+        horizontal: phone ? 16 : 24,
+        vertical: phone ? 12 : 16,
+      ),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCard : AppColors.lightCard,
         border: Border(
@@ -1449,189 +1484,275 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
       ),
-      child: Row(
-        children: [
-          // Avatar with Camera Badge
-          Stack(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 720;
+          final isNarrow = constraints.maxWidth < 420;
+
+          return Row(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primary.withAlpha(120),
-                    width: 2.5,
-                  ),
-                ),
-                child: CircleAvatar(
-                  radius: phone ? 28 : 34,
-                  backgroundColor: AppColors.primary.withAlpha(40),
-                  backgroundImage:
-                      _currentProfile.avatarUrl != null &&
-                          _currentProfile.avatarUrl!.isNotEmpty
-                      ? NetworkImage(_currentProfile.avatarUrl!)
-                      : null,
-                  child:
-                      _currentProfile.avatarUrl == null ||
-                          _currentProfile.avatarUrl!.isEmpty
-                      ? Text(
-                          _currentProfile.initials,
-                          style: TextStyle(
-                            fontSize: phone ? 20 : 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        )
-                      : null,
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: InkWell(
-                  onTap: _openAvatarSelectionModal,
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(5),
+              // Avatar with Camera Badge
+              Stack(
+                children: [
+                  Container(
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isDark ? AppColors.darkCard : Colors.white,
-                        width: 1.5,
+                        color: AppColors.primary.withAlpha(120),
+                        width: 2.5,
                       ),
                     ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      size: 13,
-                      color: Colors.white,
+                    child: CircleAvatar(
+                      radius: isNarrow ? 26 : (isWide ? 34 : 28),
+                      backgroundColor: AppColors.primary.withAlpha(40),
+                      backgroundImage:
+                          _currentProfile.avatarUrl != null &&
+                              _currentProfile.avatarUrl!.isNotEmpty
+                          ? NetworkImage(_currentProfile.avatarUrl!)
+                          : null,
+                      child:
+                          _currentProfile.avatarUrl == null ||
+                              _currentProfile.avatarUrl!.isEmpty
+                          ? Text(
+                              _currentProfile.initials,
+                              style: TextStyle(
+                                fontSize: isNarrow ? 18 : (isWide ? 24 : 20),
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            )
+                          : null,
                     ),
                   ),
-                ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: InkWell(
+                      onTap: _openAvatarSelectionModal,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark ? AppColors.darkCard : Colors.white,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(width: 14),
-          // User Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
+              const SizedBox(width: 14),
+
+              // User Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Flexible(
-                      child: Text(
-                        _currentProfile.fullName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: phone ? 16 : 18,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? AppColors.darkText
-                              : AppColors.lightText,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _currentProfile.fullName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: isWide ? 18 : 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : AppColors.lightText,
+                            ),
+                          ),
                         ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _currentProfile.isAdmin
+                                ? AppColors.primary.withAlpha(35)
+                                : AppColors.statusCompleted.withAlpha(35),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: _currentProfile.isAdmin
+                                  ? AppColors.primary.withAlpha(80)
+                                  : AppColors.statusCompleted.withAlpha(80),
+                            ),
+                          ),
+                          child: Text(
+                            _currentProfile.role.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: _currentProfile.isAdmin
+                                  ? AppColors.primary
+                                  : AppColors.statusCompleted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _currentProfile.email,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _currentProfile.isAdmin
-                            ? AppColors.primary.withAlpha(35)
-                            : AppColors.statusCompleted.withAlpha(35),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: _currentProfile.isAdmin
-                              ? AppColors.primary.withAlpha(80)
-                              : AppColors.statusCompleted.withAlpha(80),
-                        ),
-                      ),
-                      child: Text(
-                        _currentProfile.role.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: _currentProfile.isAdmin
-                              ? AppColors.primary
-                              : AppColors.statusCompleted,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _currentProfile.email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.storefront_rounded,
-                      size: 13,
-                      color: isDark
-                          ? AppColors.darkMuted
-                          : AppColors.lightMuted,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        widget.restaurantName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.storefront_rounded,
+                          size: 13,
                           color: isDark
                               ? AppColors.darkMuted
                               : AppColors.lightMuted,
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            widget.restaurantName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? AppColors.darkMuted
+                                  : AppColors.lightMuted,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+              ),
+
+              // Right Actions / Quick Badges
+              if (isWide) ...[
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isClockedIn
+                        ? AppColors.statusCompleted.withAlpha(30)
+                        : isShiftFinished
+                        ? Colors.grey.withAlpha(30)
+                        : Colors.amber.withAlpha(30),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isClockedIn
+                          ? AppColors.statusCompleted.withAlpha(80)
+                          : isShiftFinished
+                          ? Colors.grey.withAlpha(80)
+                          : Colors.amber.withAlpha(80),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.circle,
+                        size: 8,
+                        color: isClockedIn
+                            ? AppColors.statusCompleted
+                            : isShiftFinished
+                            ? Colors.grey
+                            : Colors.amber[800],
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isClockedIn
+                            ? 'SEDANG BERTUGAS'
+                            : isShiftFinished
+                            ? 'SHIFT SELESAI'
+                            : 'BELUM ABSEN',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isClockedIn
+                              ? AppColors.statusCompleted
+                              : isShiftFinished
+                              ? (isDark ? Colors.grey[400] : Colors.grey[700])
+                              : Colors.amber[800],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    side: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.badge_outlined, size: 16),
+                  label: const Text('ID Card', style: TextStyle(fontSize: 12)),
+                  onPressed: _showStaffIdCardModal,
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    side: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.image_outlined, size: 16),
+                  label: const Text('Foto', style: TextStyle(fontSize: 12)),
+                  onPressed: _openAvatarSelectionModal,
+                ),
+              ] else if (!isNarrow) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Ganti Foto Profil',
+                  icon: const Icon(Icons.image_outlined, size: 20),
+                  onPressed: _openAvatarSelectionModal,
+                ),
               ],
-            ),
-          ),
-          const SizedBox(width: 6),
-          // Quick Change Avatar Action
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(
-                horizontal: phone ? 10 : 14,
-                vertical: 8,
-              ),
-              side: BorderSide(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            icon: const Icon(Icons.image_outlined, size: 16),
-            label: Text(
-              phone ? 'Foto' : 'Ganti Foto',
-              style: const TextStyle(fontSize: 12),
-            ),
-            onPressed: _openAvatarSelectionModal,
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // TAB 1: ABSENSI KARYAWAN RESTO
+  // TAB 1: ABSENSI KARYAWAN RESTO (RESPONSIF ADAPTIF)
   // ---------------------------------------------------------------------------
   Widget _buildAttendanceTab(bool isDark, bool phone) {
     if (_isLoadingAttendance) {
@@ -1644,31 +1765,180 @@ class _ProfileScreenState extends State<ProfileScreen>
     final isClockedIn = att != null && !att.isClockedOut;
     final isShiftFinished = att != null && att.isClockedOut;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(phone ? 16 : 24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Realtime Clock Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCard : AppColors.yellowSoft,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : AppColors.amber.withAlpha(90),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 760;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(phone ? 16 : 24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: isWide
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left Column: Jam Realtime, Pilih Karyawan & Aksi Absensi (Flex: 5)
+                        Expanded(
+                          flex: 5,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildRealtimeClockCard(
+                                isDark,
+                                false,
+                                isClockedIn,
+                                isShiftFinished,
+                              ),
+                              const SizedBox(height: 18),
+                              _buildEmployeeSelectorCard(isDark, false),
+                              const SizedBox(height: 18),
+                              _buildAttendanceActionCard(
+                                isDark,
+                                false,
+                                att,
+                                isClockedIn,
+                                isShiftFinished,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        // Right Column: Monitoring Staf Hari Ini & Riwayat (Flex: 7)
+                        Expanded(
+                          flex: 7,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (_currentProfile.isAdmin) ...[
+                                _buildStaffRecapSection(isDark, false),
+                                const SizedBox(height: 24),
+                              ],
+                              _buildAttendanceHistorySection(isDark, false),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildRealtimeClockCard(
+                          isDark,
+                          true,
+                          isClockedIn,
+                          isShiftFinished,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildEmployeeSelectorCard(isDark, true),
+                        const SizedBox(height: 16),
+                        _buildAttendanceActionCard(
+                          isDark,
+                          true,
+                          att,
+                          isClockedIn,
+                          isShiftFinished,
+                        ),
+                        const SizedBox(height: 24),
+                        if (_currentProfile.isAdmin) ...[
+                          _buildStaffRecapSection(isDark, true),
+                          const SizedBox(height: 24),
+                        ],
+                        _buildAttendanceHistorySection(isDark, true),
+                      ],
+                    ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // WIDGET KARTU JAM REALTIME & STATUS
+  Widget _buildRealtimeClockCard(
+    bool isDark,
+    bool isPhone,
+    bool isClockedIn,
+    bool isShiftFinished,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.yellowSoft,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.amber.withAlpha(90),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, boxConstraints) {
+          final isCompact = boxConstraints.maxWidth < 360;
+
+          final dateText = () {
+            try {
+              return DateFormat(
+                'EEEE, d MMMM yyyy',
+                'id_ID',
+              ).format(_currentTime);
+            } catch (_) {
+              return DateFormat(
+                'EEEE, d MMMM yyyy',
+              ).format(_currentTime);
+            }
+          }();
+
+          final statusWidget = Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: isClockedIn
+                  ? AppColors.statusCompleted.withAlpha(35)
+                  : isShiftFinished
+                  ? Colors.grey.withAlpha(40)
+                  : Colors.amber.withAlpha(35),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.circle,
+                  size: 8,
+                  color: isClockedIn
+                      ? AppColors.statusCompleted
+                      : isShiftFinished
+                      ? Colors.grey
+                      : Colors.amber[800],
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isClockedIn
+                      ? 'SEDANG BERTUGAS'
+                      : isShiftFinished
+                      ? 'SHIFT SELESAI'
+                      : 'BELUM ABSEN',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: isClockedIn
+                        ? AppColors.statusCompleted
+                        : isShiftFinished
+                        ? (isDark ? Colors.grey[400] : Colors.grey[700])
+                        : Colors.amber[800],
                   ),
                 ),
-                child: Row(
+              ],
+            ),
+          );
+
+          if (isCompact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withAlpha(40),
                         shape: BoxShape.circle,
@@ -1676,41 +1946,30 @@ class _ProfileScreenState extends State<ProfileScreen>
                       child: const Icon(
                         Icons.access_time_filled_rounded,
                         color: AppColors.primary,
-                        size: 32,
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            () {
-                              try {
-                                return DateFormat(
-                                  'EEEE, d MMMM yyyy',
-                                  'id_ID',
-                                ).format(_currentTime);
-                              } catch (_) {
-                                return DateFormat(
-                                  'EEEE, d MMMM yyyy',
-                                ).format(_currentTime);
-                              }
-                            }(),
+                            dateText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w500,
                               color: isDark
                                   ? AppColors.darkMuted
                                   : AppColors.lightMuted,
                             ),
                           ),
-                          const SizedBox(height: 2),
                           Text(
-                            DateFormat('HH:mm:ss').format(_currentTime) +
-                                ' WIB',
+                            '${DateFormat('HH:mm:ss').format(_currentTime)} WIB',
                             style: TextStyle(
-                              fontSize: phone ? 22 : 26,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
                               color: isDark
@@ -1721,741 +1980,787 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isClockedIn
-                            ? AppColors.statusCompleted.withAlpha(35)
-                            : isShiftFinished
-                            ? Colors.grey.withAlpha(40)
-                            : Colors.amber.withAlpha(35),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.circle,
-                            size: 8,
-                            color: isClockedIn
-                                ? AppColors.statusCompleted
-                                : isShiftFinished
-                                ? Colors.grey
-                                : Colors.amber,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            isClockedIn
-                                ? 'SEDANG BERTUGAS'
-                                : isShiftFinished
-                                ? 'SHIFT SELESAI'
-                                : 'BELUM ABSEN',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isClockedIn
-                                  ? AppColors.statusCompleted
-                                  : isShiftFinished
-                                  ? Colors.grey
-                                  : Colors.amber,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 10),
+                statusWidget,
+              ],
+            );
+          }
 
-              const SizedBox(height: 20),
-
-              // Employee Selector Card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.badge_rounded,
-                                  color: AppColors.primary,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Pilih Karyawan yang Absen',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? AppColors.darkText
-                                          : AppColors.lightText,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          TextButton.icon(
-                            style: TextButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                            ),
-                            onPressed: () => _openAddEmployeeDialog(),
-                            icon: const Icon(
-                              Icons.person_add_rounded,
-                              size: 16,
-                            ),
-                            label: const Text(
-                              'Tambah Karyawan',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        value: _selectedEmployeeForAttendance?.id ?? 'self',
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.account_circle_rounded),
-                          isDense: true,
-                        ),
-                        dropdownColor: isDark
-                            ? AppColors.darkSurface
-                            : AppColors.lightSurface,
-                        items: [
-                          DropdownMenuItem(
-                            value: 'self',
-                            child: Text(
-                              '${_currentProfile.fullName} (${_currentProfile.role.toUpperCase()} - Akun Login)',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          ..._employees.map(
-                            (e) => DropdownMenuItem(
-                              value: e.id,
-                              child: Text(
-                                '${e.name} (${e.role} - ${e.shift})',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ],
-                        onChanged: (val) {
-                          setState(() {
-                            if (val == null || val == 'self') {
-                              _selectedEmployeeForAttendance = null;
-                            } else {
-                              _selectedEmployeeForAttendance = _employees
-                                  .firstWhere((e) => e.id == val);
-                            }
-                          });
-                          _loadAttendanceData();
-                        },
-                      ),
-                    ],
-                  ),
+          return Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(40),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.access_time_filled_rounded,
+                  color: AppColors.primary,
+                  size: 30,
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              // Attendance Action Box
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            isClockedIn
-                                ? Icons.task_alt_rounded
-                                : Icons.how_to_reg_rounded,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Absensi Kehadiran: ${_selectedEmployeeForAttendance != null ? _selectedEmployeeForAttendance!.name : _currentProfile.fullName}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? AppColors.darkText
-                                        : AppColors.lightText,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _selectedEmployeeForAttendance != null
-                                      ? 'Jabatan: ${_selectedEmployeeForAttendance!.role} • ${_selectedEmployeeForAttendance!.shift}'
-                                      : 'Jabatan: ${_currentProfile.role.toUpperCase()} • Akun Login Utama',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark
-                                        ? AppColors.darkMuted
-                                        : AppColors.lightMuted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Status View & Action
-                      if (att == null) ...[
-                        // Belum Absen Masuk
-                        Text(
-                          'Pilih Shift Kerja Hari Ini:',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? AppColors.darkText
-                                : AppColors.lightText,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          value: _selectedShift,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            prefixIcon: Icon(Icons.schedule_rounded),
-                          ),
-                          items: _shiftOptions
-                              .map(
-                                (s) => DropdownMenuItem(
-                                  value: s,
-                                  child: Text(
-                                    s,
-                                    style: const TextStyle(fontSize: 13),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) {
-                            if (v != null) setState(() => _selectedShift = v);
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: _notesController,
-                          decoration: const InputDecoration(
-                            labelText: 'Catatan Kehadiran (Opsional)',
-                            hintText: 'Contoh: Masuk kasir shift pagi kasir 1',
-                            prefixIcon: Icon(Icons.edit_note_rounded),
-                            isDense: true,
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.statusCompleted,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          onPressed: _isClocking ? null : _handleClockIn,
-                          icon: _isClocking
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.login_rounded),
-                          label: Text(
-                            _isClocking
-                                ? 'Mencatat Kehadiran...'
-                                : 'Absen Masuk Sekarang (Clock In)',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ] else if (isClockedIn) ...[
-                        // Sedang Bertugas (Clocked In)
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.statusCompleted.withAlpha(20),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: AppColors.statusCompleted.withAlpha(60),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.check_circle_rounded,
-                                    color: AppColors.statusCompleted,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Anda Telah Absen Masuk',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? AppColors.darkText
-                                          : AppColors.lightText,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.statusCompleted
-                                          .withAlpha(40),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      att.status,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.statusCompleted,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Waktu Masuk: ${DateFormat('HH:mm').format(att.clockIn)} WIB | ${att.shift}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isDark
-                                      ? AppColors.darkMuted
-                                      : AppColors.lightMuted,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Durasi Bekerja Saat Ini: ${att.durationFormatted}',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              if (att.notes != null &&
-                                  att.notes!.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Catatan: ${att.notes}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.italic,
-                                    color: isDark
-                                        ? AppColors.darkMuted
-                                        : AppColors.lightMuted,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.amber[800],
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          onPressed: _isClocking ? null : _handleClockOut,
-                          icon: _isClocking
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.logout_rounded),
-                          label: Text(
-                            _isClocking
-                                ? 'Menyimpan...'
-                                : 'Absen Pulang (Selesai Shift)',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        // Shift Selesai Hari Ini
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.blueGrey.withAlpha(25),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: Colors.blueGrey.withAlpha(60),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Row(
-                                children: [
-                                  Icon(
-                                    Icons.done_all_rounded,
-                                    color: AppColors.statusCompleted,
-                                    size: 22,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Shift Hari Ini Selesai',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Masuk: ${DateFormat('HH:mm').format(att.clockIn)} WIB  →  Pulang: ${DateFormat('HH:mm').format(att.clockOut!)} WIB',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Total Waktu Bertugas: ${att.durationFormatted} (${att.shift})',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Jika Admin/Owner: Rekap Kehadiran Seluruh Staf Restoran Hari Ini
-              if (_currentProfile.isAdmin) ...[
-                Row(
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.people_alt_rounded,
-                      color: AppColors.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
                     Text(
-                      'Rekap Kehadiran Karyawan Hari Ini (Admin)',
+                      dateText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColors.darkMuted
+                            : AppColors.lightMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${DateFormat('HH:mm:ss').format(_currentTime)} WIB',
+                      style: TextStyle(
+                        fontSize: isPhone ? 20 : 24,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
                         color: isDark
                             ? AppColors.darkText
                             : AppColors.lightText,
                       ),
                     ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.refresh_rounded, size: 20),
-                      onPressed: _loadAttendanceData,
-                      tooltip: 'Muat Ulang Kehadiran',
-                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                if (_allStaffTodayAttendances.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark
-                            ? AppColors.darkBorder
-                            : AppColors.lightBorder,
-                      ),
-                    ),
-                    child: Text(
-                      'Belum ada karyawan lain yang melakukan absensi hari ini.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark
-                            ? AppColors.darkMuted
-                            : AppColors.lightMuted,
-                      ),
-                    ),
-                  )
-                else
-                  Card(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _allStaffTodayAttendances.length,
-                      separatorBuilder: (_, __) => Divider(
-                        height: 1,
-                        color: isDark
-                            ? AppColors.darkBorder
-                            : AppColors.lightBorder,
-                      ),
-                      itemBuilder: (ctx, i) {
-                        final a = _allStaffTodayAttendances[i];
-                        final out = a.clockOut != null;
-
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: AppColors.primary.withAlpha(40),
-                            child: Text(
-                              a.userName.isNotEmpty
-                                  ? a.userName[0].toUpperCase()
-                                  : 'S',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            a.userName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          subtitle: Text(
-                            '${a.shift} • In: ${DateFormat('HH:mm').format(a.clockIn)} WIB ${out ? '• Out: ${DateFormat('HH:mm').format(a.clockOut!)}' : '• Aktif'}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? AppColors.darkMuted
-                                  : AppColors.lightMuted,
-                            ),
-                          ),
-                          trailing: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: out
-                                  ? Colors.grey.withAlpha(30)
-                                  : AppColors.statusCompleted.withAlpha(35),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              out ? 'Selesai' : 'Bertugas',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: out
-                                    ? (isDark
-                                          ? Colors.grey[400]
-                                          : Colors.grey[700])
-                                    : AppColors.statusCompleted,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                const SizedBox(height: 24),
-              ],
-
-              // Riwayat Absensi Saya
-              Row(
-                children: [
-                  const Icon(
-                    Icons.history_rounded,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Riwayat Absensi Saya (30 Hari Terakhir)',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.darkText : AppColors.lightText,
-                    ),
-                  ),
-                ],
               ),
-              const SizedBox(height: 10),
-              if (_attendanceHistory.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.darkBorder
-                          : AppColors.lightBorder,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Belum ada riwayat absensi sebelumnya.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark
-                            ? AppColors.darkMuted
-                            : AppColors.lightMuted,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                Card(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _attendanceHistory.length,
-                    separatorBuilder: (_, __) => Divider(
-                      height: 1,
-                      color: isDark
-                          ? AppColors.darkBorder
-                          : AppColors.lightBorder,
-                    ),
-                    itemBuilder: (ctx, i) {
-                      final item = _attendanceHistory[i];
-                      final dateStr = DateFormat(
-                        'dd MMM yyyy',
-                      ).format(item.date);
-                      final inTime = DateFormat('HH:mm').format(item.clockIn);
-                      final outTime = item.clockOut != null
-                          ? DateFormat('HH:mm').format(item.clockOut!)
-                          : '-';
+              const SizedBox(width: 8),
+              statusWidget,
+            ],
+          );
+        },
+      ),
+    );
+  }
 
-                      return ListTile(
-                        dense: true,
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: item.status.contains('Terlambat')
-                                ? Colors.amber.withAlpha(40)
-                                : AppColors.statusCompleted.withAlpha(40),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            item.status.contains('Terlambat')
-                                ? Icons.timer_outlined
-                                : Icons.check_circle_outline_rounded,
-                            color: item.status.contains('Terlambat')
-                                ? Colors.amber[800]
-                                : AppColors.statusCompleted,
-                            size: 20,
-                          ),
-                        ),
-                        title: Row(
-                          children: [
-                            Text(
-                              dateStr,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              item.shift,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isDark
-                                    ? AppColors.darkMuted
-                                    : AppColors.lightMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          'Masuk: $inTime WIB  |  Pulang: $outTime WIB  (${item.durationFormatted})',
+  // WIDGET KARTU PEMILIH KARYAWAN
+  Widget _buildEmployeeSelectorCard(bool isDark, bool isPhone) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.badge_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Pilih Karyawan yang Absen',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.bold,
                             color: isDark
-                                ? AppColors.darkMuted
-                                : AppColors.lightMuted,
+                                ? AppColors.darkText
+                                : AppColors.lightText,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: item.status.contains('Terlambat')
-                                ? Colors.amber.withAlpha(30)
-                                : AppColors.statusCompleted.withAlpha(30),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            item.status,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: item.status.contains('Terlambat')
-                                  ? Colors.amber[800]
-                                  : AppColors.statusCompleted,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
-            ],
-          ),
+                const SizedBox(width: 6),
+                if (_currentProfile.isAdmin)
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                    ),
+                    onPressed: () => _openAddEmployeeDialog(),
+                    icon: const Icon(Icons.person_add_rounded, size: 15),
+                    label: Text(
+                      isPhone ? 'Tambah' : 'Tambah Karyawan',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: _selectedEmployeeForAttendance?.id ?? 'self',
+              isExpanded: true,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.account_circle_rounded),
+                isDense: true,
+              ),
+              dropdownColor: isDark
+                  ? AppColors.darkSurface
+                  : AppColors.lightSurface,
+              items: [
+                DropdownMenuItem(
+                  value: 'self',
+                  child: Text(
+                    '${_currentProfile.fullName} (${_currentProfile.role.toUpperCase()} - Akun Login)',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                ..._employees.map(
+                  (e) => DropdownMenuItem(
+                    value: e.id,
+                    child: Text(
+                      '${e.name} (${e.role} - ${e.shift})',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+              onChanged: (val) {
+                setState(() {
+                  if (val == null || val == 'self') {
+                    _selectedEmployeeForAttendance = null;
+                  } else {
+                    _selectedEmployeeForAttendance = _employees.firstWhere(
+                      (e) => e.id == val,
+                    );
+                  }
+                });
+                _loadAttendanceData();
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 
+  // WIDGET KARTU AKSI ABSENSI (CLOCK IN / CLOCK OUT / SELESAI)
+  Widget _buildAttendanceActionCard(
+    bool isDark,
+    bool isPhone,
+    DbAttendance? att,
+    bool isClockedIn,
+    bool isShiftFinished,
+  ) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  isClockedIn
+                      ? Icons.task_alt_rounded
+                      : Icons.how_to_reg_rounded,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Absensi Kehadiran: ${_selectedEmployeeForAttendance != null ? _selectedEmployeeForAttendance!.name : _currentProfile.fullName}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.darkText
+                              : AppColors.lightText,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _selectedEmployeeForAttendance != null
+                            ? 'Jabatan: ${_selectedEmployeeForAttendance!.role} • ${_selectedEmployeeForAttendance!.shift}'
+                            : 'Jabatan: ${_currentProfile.role.toUpperCase()} • Akun Login Utama',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.darkMuted
+                              : AppColors.lightMuted,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Belum Absen Masuk
+            if (att == null) ...[
+              Text(
+                'Pilih Shift Kerja Hari Ini:',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.darkText : AppColors.lightText,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedShift,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  prefixIcon: Icon(Icons.schedule_rounded),
+                ),
+                items: _shiftOptions
+                    .map(
+                      (s) => DropdownMenuItem(
+                        value: s,
+                        child: Text(
+                          s,
+                          style: const TextStyle(fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) setState(() => _selectedShift = v);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Catatan Kehadiran (Opsional)',
+                  hintText: 'Contoh: Masuk kasir shift pagi',
+                  prefixIcon: Icon(Icons.edit_note_rounded),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.statusCompleted,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: _isClocking ? null : _handleClockIn,
+                icon: _isClocking
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.login_rounded),
+                label: Text(
+                  _isClocking
+                      ? 'Mencatat Kehadiran...'
+                      : 'Absen Masuk Sekarang (Clock In)',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ] else if (isClockedIn) ...[
+              // Sedang Bertugas
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.statusCompleted.withAlpha(20),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.statusCompleted.withAlpha(60),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          color: AppColors.statusCompleted,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Anda Telah Absen Masuk',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : AppColors.lightText,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.statusCompleted.withAlpha(40),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            att.status,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.statusCompleted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Waktu Masuk: ${DateFormat('HH:mm').format(att.clockIn)} WIB | ${att.shift}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark
+                            ? AppColors.darkMuted
+                            : AppColors.lightMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Durasi Bekerja: ${att.durationFormatted}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    if (att.notes != null && att.notes!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Catatan: ${att.notes}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: isDark
+                              ? AppColors.darkMuted
+                              : AppColors.lightMuted,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.amber[800],
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: _isClocking ? null : _handleClockOut,
+                icon: _isClocking
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.logout_rounded),
+                label: Text(
+                  _isClocking
+                      ? 'Menyimpan...'
+                      : 'Absen Pulang (Selesai Shift)',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ] else ...[
+              // Shift Selesai Hari Ini
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blueGrey.withAlpha(25),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.blueGrey.withAlpha(60),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(
+                          Icons.done_all_rounded,
+                          color: AppColors.statusCompleted,
+                          size: 22,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Shift Hari Ini Selesai',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Masuk: ${DateFormat('HH:mm').format(att.clockIn)} WIB  →  Pulang: ${DateFormat('HH:mm').format(att.clockOut!)} WIB',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Total Waktu Bertugas: ${att.durationFormatted} (${att.shift})',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // WIDGET REKAP KEHADIRAN KARYAWAN HARI INI (ADMIN)
+  Widget _buildStaffRecapSection(bool isDark, bool isPhone) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.people_alt_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Rekap Kehadiran Karyawan Hari Ini (Admin)',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.darkText : AppColors.lightText,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded, size: 20),
+              onPressed: _loadAttendanceData,
+              tooltip: 'Muat Ulang Kehadiran',
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (_allStaffTodayAttendances.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCard : AppColors.lightCard,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: Text(
+              'Belum ada karyawan lain yang melakukan absensi hari ini.',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+              ),
+            ),
+          )
+        else
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _allStaffTodayAttendances.length,
+              separatorBuilder: (_, __) => Divider(
+                height: 1,
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+              itemBuilder: (ctx, i) {
+                final a = _allStaffTodayAttendances[i];
+                final out = a.clockOut != null;
+
+                return ListTile(
+                  dense: true,
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primary.withAlpha(40),
+                    child: Text(
+                      a.userName.isNotEmpty
+                          ? a.userName[0].toUpperCase()
+                          : 'S',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    a.userName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${a.shift} • In: ${DateFormat('HH:mm').format(a.clockIn)} WIB ${out ? '• Out: ${DateFormat('HH:mm').format(a.clockOut!)}' : '• Aktif'}',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: out
+                          ? Colors.grey.withAlpha(30)
+                          : AppColors.statusCompleted.withAlpha(35),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      out ? 'Selesai' : 'Bertugas',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: out
+                            ? (isDark ? Colors.grey[400] : Colors.grey[700])
+                            : AppColors.statusCompleted,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  // WIDGET RIWAYAT ABSENSI SAYA (30 HARI TERAKHIR)
+  Widget _buildAttendanceHistorySection(bool isDark, bool isPhone) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.history_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Riwayat Absensi Saya (30 Hari Terakhir)',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.darkText : AppColors.lightText,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (_attendanceHistory.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCard : AppColors.lightCard,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                'Belum ada riwayat absensi sebelumnya.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                ),
+              ),
+            ),
+          )
+        else
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _attendanceHistory.length,
+              separatorBuilder: (_, __) => Divider(
+                height: 1,
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+              itemBuilder: (ctx, i) {
+                final item = _attendanceHistory[i];
+                final dateStr = DateFormat('dd MMM yyyy').format(item.date);
+                final inTime = DateFormat('HH:mm').format(item.clockIn);
+                final outTime = item.clockOut != null
+                    ? DateFormat('HH:mm').format(item.clockOut!)
+                    : '-';
+
+                return ListTile(
+                  dense: true,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: item.status.contains('Terlambat')
+                          ? Colors.amber.withAlpha(40)
+                          : AppColors.statusCompleted.withAlpha(40),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      item.status.contains('Terlambat')
+                          ? Icons.timer_outlined
+                          : Icons.check_circle_outline_rounded,
+                      color: item.status.contains('Terlambat')
+                          ? Colors.amber[800]
+                          : AppColors.statusCompleted,
+                      size: 20,
+                    ),
+                  ),
+                  title: Row(
+                    children: [
+                      Text(
+                        dateStr,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          item.shift,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark
+                                ? AppColors.darkMuted
+                                : AppColors.lightMuted,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(
+                    'Masuk: $inTime WIB | Pulang: $outTime WIB (${item.durationFormatted})',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: isDark
+                          ? AppColors.darkMuted
+                          : AppColors.lightMuted,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.status.contains('Terlambat')
+                          ? Colors.amber.withAlpha(30)
+                          : AppColors.statusCompleted.withAlpha(30),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      item.status,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: item.status.contains('Terlambat')
+                            ? Colors.amber[800]
+                            : AppColors.statusCompleted,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
   // ---------------------------------------------------------------------------
-  // TAB 2: KELOLA KARYAWAN RESTORAN
+  // TAB 2: KELOLA KARYAWAN RESTORAN (ADAPTIF RESPONSIF)
   // ---------------------------------------------------------------------------
   Widget _buildEmployeesTab(bool isDark, bool phone) {
     if (_isLoadingEmployees) {
@@ -2466,474 +2771,598 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     final activeCount = _employees.where((e) => e.isActive).length;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(phone ? 16 : 24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Card
-              Card(
-                elevation: 0,
-                color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : AppColors.lightBorder,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 720;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(phone ? 16 : 24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Card
+                  Card(
+                    elevation: 0,
+                    color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.lightBorder,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withAlpha(25),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.badge_rounded,
+                              color: AppColors.primary,
+                              size: 26,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Daftar Karyawan Resto',
+                                  style: TextStyle(
+                                    fontSize: phone ? 16 : 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? AppColors.darkText
+                                        : AppColors.lightText,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  'Kelola nama staf, kasir, koki, dan jadwal absensi mereka.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? AppColors.darkMuted
+                                        : AppColors.lightMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: phone ? 12 : 16,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () => _openAddEmployeeDialog(),
+                            icon: const Icon(Icons.person_add_rounded, size: 18),
+                            label: Text(
+                              phone ? 'Tambah' : 'Tambah Karyawan',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(25),
-                          shape: BoxShape.circle,
+
+                  const SizedBox(height: 18),
+
+                  // Summary metric chip
+                  if (_employees.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withAlpha(20),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Total: ${_employees.length} Karyawan ($activeCount Aktif)',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.badge_rounded,
-                          color: AppColors.primary,
-                          size: 26,
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: _loadEmployees,
+                          icon: const Icon(Icons.refresh_rounded, size: 16),
+                          label: const Text(
+                            'Segarkan Data',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  // Empty State
+                  if (_employees.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 40,
+                        horizontal: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.lightBorder,
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Daftar Karyawan Resto',
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withAlpha(25),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.group_add_outlined,
+                              size: 42,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Belum Ada Karyawan Terdaftar',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : AppColors.lightText,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Tambahkan nama karyawan Anda sekarang ke database\nagar staf bisa absen shift kerja.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? AppColors.darkMuted
+                                  : AppColors.lightMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () => _openAddEmployeeDialog(),
+                            icon: const Icon(Icons.person_add_rounded, size: 18),
+                            label: const Text('Tambah Karyawan Pertama'),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (isWide)
+                    // Tampilan Grid untuk Tablet & Desktop
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 460,
+                        mainAxisExtent: 156,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: _employees.length,
+                      itemBuilder: (ctx, idx) => _buildEmployeeCard(
+                        _employees[idx],
+                        isDark,
+                        false,
+                      ),
+                    )
+                  else
+                    // Tampilan List untuk Smartphone
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _employees.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (ctx, idx) => _buildEmployeeCard(
+                        _employees[idx],
+                        isDark,
+                        true,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // WIDGET KARTU KARYAWAN INDIVIDUAL RESPONSIF
+  Widget _buildEmployeeCard(DbEmployee emp, bool isDark, bool isPhone) {
+    final isSelected = _selectedEmployeeForAttendance?.id == emp.id;
+
+    return Card(
+      elevation: 0,
+      color: isSelected
+          ? AppColors.primary.withAlpha(20)
+          : (isDark ? AppColors.darkCard : AppColors.lightCard),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isSelected
+              ? AppColors.primary
+              : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          width: isSelected ? 1.8 : 1.0,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: emp.isActive
+                      ? AppColors.primary.withAlpha(35)
+                      : Colors.grey.withAlpha(40),
+                  child: Text(
+                    emp.initials,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: emp.isActive ? AppColors.primary : Colors.grey,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              emp.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: phone ? 16 : 18,
+                                fontSize: 14.5,
                                 fontWeight: FontWeight.bold,
                                 color: isDark
                                     ? AppColors.darkText
                                     : AppColors.lightText,
                               ),
                             ),
-                            const SizedBox(height: 3),
-                            Text(
-                              'Kelola nama staf, kasir, koki, dan jadwal absensi mereka.',
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: emp.isActive
+                                  ? AppColors.statusCompleted.withAlpha(30)
+                                  : Colors.grey.withAlpha(30),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              emp.isActive ? 'Aktif' : 'Nonaktif',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: emp.isActive
+                                    ? AppColors.statusCompleted
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withAlpha(20),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              emp.role,
+                              style: const TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 12,
+                            color: isDark
+                                ? AppColors.darkMuted
+                                : AppColors.lightMuted,
+                          ),
+                          const SizedBox(width: 3),
+                          Flexible(
+                            child: Text(
+                              emp.shift,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
                                 color: isDark
                                     ? AppColors.darkMuted
                                     : AppColors.lightMuted,
                               ),
                             ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (isPhone)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert_rounded, size: 20),
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (ctx) => [
+                      const PopupMenuItem(
+                        value: 'absen',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.fingerprint_rounded,
+                              size: 18,
+                              color: AppColors.primary,
+                            ),
+                            SizedBox(width: 8),
+                            Text('Absen Ini'),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: phone ? 12 : 16,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined, size: 18),
+                            SizedBox(width: 8),
+                            Text('Edit Data'),
+                          ],
                         ),
-                        onPressed: () => _openAddEmployeeDialog(),
-                        icon: const Icon(Icons.person_add_rounded, size: 18),
-                        label: Text(
-                          phone ? 'Tambah' : 'Tambah Karyawan',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.delete_outline_rounded,
+                              size: 18,
+                              color: Colors.redAccent,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Hapus',
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
+                          ],
                         ),
                       ),
                     ],
+                    onSelected: (val) {
+                      if (val == 'absen') {
+                        setState(() {
+                          _selectedEmployeeForAttendance = emp;
+                        });
+                        _loadAttendanceData();
+                        _tabController.animateTo(0);
+                        _showSnackbar(
+                          'Beralih ke tab Absensi untuk ${emp.name}',
+                        );
+                      } else if (val == 'edit') {
+                        _openAddEmployeeDialog(emp);
+                      } else if (val == 'delete') {
+                        _deleteEmployee(emp);
+                      }
+                    },
+                  ),
+              ],
+            ),
+            if (emp.phone != null && emp.phone!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    Icons.phone_android_rounded,
+                    size: 12,
+                    color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    emp.phone!,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            if (!isPhone) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      side: const BorderSide(color: AppColors.primary),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _selectedEmployeeForAttendance = emp;
+                      });
+                      _loadAttendanceData();
+                      _tabController.animateTo(0);
+                      _showSnackbar(
+                        'Beralih ke tab Absensi untuk ${emp.name}',
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.fingerprint_rounded,
+                      size: 15,
+                      color: AppColors.primary,
+                    ),
+                    label: const Text(
+                      'Absen Ini',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    tooltip: 'Edit Karyawan',
+                    onPressed: () => _openAddEmployeeDialog(emp),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      size: 18,
+                      color: Colors.redAccent,
+                    ),
+                    tooltip: 'Hapus Karyawan',
+                    onPressed: () => _deleteEmployee(emp),
+                  ),
+                ],
+              ),
+            ] else ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    side: const BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _selectedEmployeeForAttendance = emp;
+                    });
+                    _loadAttendanceData();
+                    _tabController.animateTo(0);
+                    _showSnackbar(
+                      'Beralih ke tab Absensi untuk ${emp.name}',
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.fingerprint_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  label: const Text(
+                    'Catat Absensi Karyawan Ini',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
               ),
-
-              const SizedBox(height: 18),
-
-              // Summary metric chip
-              if (_employees.isNotEmpty) ...[
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(20),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'Total: ${_employees.length} Karyawan ($activeCount Aktif)',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: _loadEmployees,
-                      icon: const Icon(Icons.refresh_rounded, size: 16),
-                      label: const Text(
-                        'Segarkan Data',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
-
-              // Empty State
-              if (_employees.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 40,
-                    horizontal: 20,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.darkBorder
-                          : AppColors.lightBorder,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(25),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.group_add_outlined,
-                          size: 42,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Belum Ada Karyawan Terdaftar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? AppColors.darkText
-                              : AppColors.lightText,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Tambahkan nama karyawan Anda sekarang ke database\nagar staf bisa absen shift kerja.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark
-                              ? AppColors.darkMuted
-                              : AppColors.lightMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () => _openAddEmployeeDialog(),
-                        icon: const Icon(Icons.person_add_rounded, size: 18),
-                        label: const Text('Tambah Karyawan Pertama'),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _employees.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (ctx, idx) {
-                    final emp = _employees[idx];
-                    final isSelected =
-                        _selectedEmployeeForAttendance?.id == emp.id;
-
-                    return Card(
-                      elevation: 0,
-                      color: isSelected
-                          ? AppColors.primary.withAlpha(20)
-                          : (isDark ? AppColors.darkCard : AppColors.lightCard),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        side: BorderSide(
-                          color: isSelected
-                              ? AppColors.primary
-                              : (isDark
-                                    ? AppColors.darkBorder
-                                    : AppColors.lightBorder),
-                          width: isSelected ? 1.8 : 1.0,
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(
-                          children: [
-                            // Initials Avatar
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundColor: emp.isActive
-                                  ? AppColors.primary.withAlpha(35)
-                                  : Colors.grey.withAlpha(40),
-                              child: Text(
-                                emp.initials,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: emp.isActive
-                                      ? AppColors.primary
-                                      : Colors.grey,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-
-                            // Info
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          emp.name,
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark
-                                                ? AppColors.darkText
-                                                : AppColors.lightText,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 7,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: emp.isActive
-                                              ? AppColors.statusCompleted
-                                                    .withAlpha(30)
-                                              : Colors.grey.withAlpha(30),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          emp.isActive ? 'Aktif' : 'Nonaktif',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: emp.isActive
-                                                ? AppColors.statusCompleted
-                                                : Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 1.5,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary.withAlpha(
-                                            20,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          emp.role,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Icon(
-                                        Icons.schedule_rounded,
-                                        size: 13,
-                                        color: isDark
-                                            ? AppColors.darkMuted
-                                            : AppColors.lightMuted,
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Flexible(
-                                        child: Text(
-                                          emp.shift,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: isDark
-                                                ? AppColors.darkMuted
-                                                : AppColors.lightMuted,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (emp.phone != null &&
-                                      emp.phone!.isNotEmpty) ...[
-                                    const SizedBox(height: 3),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.phone_android_rounded,
-                                          size: 12,
-                                          color: isDark
-                                              ? AppColors.darkMuted
-                                              : AppColors.lightMuted,
-                                        ),
-                                        const SizedBox(width: 3),
-                                        Text(
-                                          emp.phone!,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: isDark
-                                                ? AppColors.darkMuted
-                                                : AppColors.lightMuted,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-
-                            // Actions
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Absen Sekarang Button
-                                OutlinedButton.icon(
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 8,
-                                    ),
-                                    side: const BorderSide(
-                                      color: AppColors.primary,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedEmployeeForAttendance = emp;
-                                    });
-                                    _loadAttendanceData();
-                                    _tabController.animateTo(0);
-                                    _showSnackbar(
-                                      'Beralih ke tab Absensi untuk ${emp.name}',
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.fingerprint_rounded,
-                                    size: 15,
-                                    color: AppColors.primary,
-                                  ),
-                                  label: Text(
-                                    phone ? 'Absen' : 'Absen Ini',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.edit_outlined,
-                                    size: 18,
-                                  ),
-                                  tooltip: 'Edit Data Karyawan',
-                                  onPressed: () => _openAddEmployeeDialog(emp),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline_rounded,
-                                    size: 18,
-                                    color: Colors.redAccent,
-                                  ),
-                                  tooltip: 'Hapus Karyawan',
-                                  onPressed: () => _deleteEmployee(emp),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
             ],
-          ),
+          ],
         ),
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // TAB 3: EDIT PROFIL & KONTAK
+  // TAB 3: EDIT PROFIL & KONTAK (ADAPTIF RESPONSIF)
   // ---------------------------------------------------------------------------
   Widget _buildEditProfileTab(bool isDark, bool phone) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(phone ? 16 : 24),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 600;
+
+              return Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(22),
+                  padding: EdgeInsets.all(isWide ? 26 : 18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -2948,7 +3377,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           Text(
                             'Informasi Data Karyawan',
                             style: TextStyle(
-                              fontSize: 17,
+                              fontSize: isWide ? 18 : 16,
                               fontWeight: FontWeight.bold,
                               color: isDark
                                   ? AppColors.darkText
@@ -2957,145 +3386,70 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         'Pastikan data Anda sesuai dengan identitas resmi pegawai restoran.',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12.5,
                           color: isDark
                               ? AppColors.darkMuted
                               : AppColors.lightMuted,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 22),
 
-                      // Nama Lengkap
-                      Text(
-                        'Nama Lengkap:',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppColors.darkText
-                              : AppColors.lightText,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.badge_outlined),
-                          hintText: 'Nama lengkap kasir / admin',
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Nomor WhatsApp / Telepon
-                      Text(
-                        'Nomor Telepon / WhatsApp:',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppColors.darkText
-                              : AppColors.lightText,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.phone_outlined),
-                          hintText: '081234567890',
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Email (Read Only)
-                      Text(
-                        'Email Akun (Terkunci):',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppColors.darkText
-                              : AppColors.lightText,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: _currentProfile.email,
-                        ),
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.email_outlined),
-                          filled: true,
-                          fillColor: isDark ? Colors.black26 : Colors.grey[100],
-                          suffixIcon: const Icon(
-                            Icons.lock_outline_rounded,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Role Akun
-                      Text(
-                        'Peran & Hak Akses (Role):',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppColors.darkText
-                              : AppColors.lightText,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.black26 : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isDark
-                                ? AppColors.darkBorder
-                                : AppColors.lightBorder,
-                          ),
-                        ),
-                        child: Row(
+                      if (isWide) ...[
+                        // Baris 1: Nama Lengkap & Nomor WhatsApp
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              _currentProfile.isAdmin
-                                  ? Icons.admin_panel_settings_rounded
-                                  : Icons.point_of_sale_rounded,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    _currentProfile.role.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                    'Nama Lengkap:',
+                                    style: TextStyle(
                                       fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppColors.darkText
+                                          : AppColors.lightText,
                                     ),
                                   ),
+                                  const SizedBox(height: 6),
+                                  TextField(
+                                    controller: _nameController,
+                                    decoration: const InputDecoration(
+                                      prefixIcon: Icon(Icons.badge_outlined),
+                                      hintText: 'Nama lengkap kasir / admin',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    _currentProfile.isAdmin
-                                        ? 'Hak akses penuh admin: manajemen produk, staf, laporan.'
-                                        : 'Akses operasional POS kasir, transaksi pesanan, & struk.',
+                                    'Nomor Telepon / WhatsApp:',
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
                                       color: isDark
-                                          ? AppColors.darkMuted
-                                          : AppColors.lightMuted,
+                                          ? AppColors.darkText
+                                          : AppColors.lightText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextField(
+                                    controller: _phoneController,
+                                    keyboardType: TextInputType.phone,
+                                    decoration: const InputDecoration(
+                                      prefixIcon: Icon(Icons.phone_outlined),
+                                      hintText: '081234567890',
                                     ),
                                   ),
                                 ],
@@ -3103,7 +3457,260 @@ class _ProfileScreenState extends State<ProfileScreen>
                             ),
                           ],
                         ),
-                      ),
+                        const SizedBox(height: 18),
+
+                        // Baris 2: Email Akun & Role
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Email Akun (Terkunci):',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppColors.darkText
+                                          : AppColors.lightText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextField(
+                                    readOnly: true,
+                                    controller: TextEditingController(
+                                      text: _currentProfile.email,
+                                    ),
+                                    decoration: InputDecoration(
+                                      prefixIcon: const Icon(Icons.email_outlined),
+                                      filled: true,
+                                      fillColor: isDark
+                                          ? Colors.black26
+                                          : Colors.grey[100],
+                                      suffixIcon: const Icon(
+                                        Icons.lock_outline_rounded,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Peran & Hak Akses (Role):',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppColors.darkText
+                                          : AppColors.lightText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? Colors.black26
+                                          : Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? AppColors.darkBorder
+                                            : AppColors.lightBorder,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          _currentProfile.isAdmin
+                                              ? Icons.admin_panel_settings_rounded
+                                              : Icons.point_of_sale_rounded,
+                                          color: AppColors.primary,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _currentProfile.role.toUpperCase(),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                              Text(
+                                                _currentProfile.isAdmin
+                                                    ? 'Hak akses penuh admin: produk, staf, laporan.'
+                                                    : 'Akses operasional POS kasir, pesanan & struk.',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: isDark
+                                                      ? AppColors.darkMuted
+                                                      : AppColors.lightMuted,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        // Single Column untuk Smartphone
+                        Text(
+                          'Nama Lengkap:',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkText
+                                : AppColors.lightText,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.badge_outlined),
+                            hintText: 'Nama lengkap kasir / admin',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        Text(
+                          'Nomor Telepon / WhatsApp:',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkText
+                                : AppColors.lightText,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.phone_outlined),
+                            hintText: '081234567890',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        Text(
+                          'Email Akun (Terkunci):',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkText
+                                : AppColors.lightText,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextField(
+                          readOnly: true,
+                          controller: TextEditingController(
+                            text: _currentProfile.email,
+                          ),
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            filled: true,
+                            fillColor:
+                                isDark ? Colors.black26 : Colors.grey[100],
+                            suffixIcon: const Icon(
+                              Icons.lock_outline_rounded,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        Text(
+                          'Peran & Hak Akses (Role):',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkText
+                                : AppColors.lightText,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.black26 : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.lightBorder,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _currentProfile.isAdmin
+                                    ? Icons.admin_panel_settings_rounded
+                                    : Icons.point_of_sale_rounded,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _currentProfile.role.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    Text(
+                                      _currentProfile.isAdmin
+                                          ? 'Hak akses penuh admin: manajemen produk, staf, laporan.'
+                                          : 'Akses operasional POS kasir, transaksi pesanan, & struk.',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: isDark
+                                            ? AppColors.darkMuted
+                                            : AppColors.lightMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
                       const SizedBox(height: 24),
 
                       // Button Simpan
@@ -3116,9 +3723,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        onPressed: _isSavingProfile
-                            ? null
-                            : _saveProfileChanges,
+                        onPressed:
+                            _isSavingProfile ? null : _saveProfileChanges,
                         icon: _isSavingProfile
                             ? const SizedBox(
                                 width: 18,
@@ -3142,8 +3748,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ],
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
@@ -3163,8 +3769,15 @@ class _ProfileScreenState extends State<ProfileScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(22),
+                  padding: EdgeInsets.all(phone ? 18 : 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -3313,8 +3926,15 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               // Security Audit Card
               Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(phone ? 18 : 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -3500,8 +4120,15 @@ class _ProfileScreenState extends State<ProfileScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(phone ? 18 : 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -3600,8 +4227,15 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               // Info Aplikasi Resto
               Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(phone ? 18 : 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
