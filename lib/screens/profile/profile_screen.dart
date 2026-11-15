@@ -7,6 +7,7 @@ import 'package:my_app/services/pos_service.dart';
 import 'package:my_app/core/theme/theme_controller.dart';
 import 'package:my_app/core/utils/responsive.dart';
 import 'package:my_app/screens/auth/login_screen.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserProfile userProfile;
@@ -312,7 +313,72 @@ class _ProfileScreenState extends State<ProfileScreen>
                           : AppColors.lightMuted,
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
+
+                  // Opsi Ambil Foto dari Perangkat
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _pickAvatarFromDevice(ImageSource.camera);
+                          },
+                          icon: const Icon(Icons.camera_alt_rounded, size: 18),
+                          label: const Text('Kamera', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: isDark ? AppColors.darkText : AppColors.lightText,
+                            side: BorderSide(
+                              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _pickAvatarFromDevice(ImageSource.gallery);
+                          },
+                          icon: const Icon(Icons.photo_library_rounded, size: 18),
+                          label: const Text('Galeri HP', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: isDark ? AppColors.darkText : AppColors.lightText,
+                            side: BorderSide(
+                              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Text(
+                          'atau pilih avatar',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
 
                   // Preset Grid
                   SizedBox(
@@ -482,6 +548,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         avatarUrl: newUrl,
       );
 
+      if (!mounted) return;
       setState(() {
         _currentProfile = updated;
         _isSavingProfile = false;
@@ -490,8 +557,41 @@ class _ProfileScreenState extends State<ProfileScreen>
       widget.onProfileUpdated?.call(updated);
       _showSnackbar('Foto profil berhasil diperbarui!');
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isSavingProfile = false);
       _showSnackbar('Gagal memperbarui avatar: $e', isError: true);
+    }
+  }
+
+  Future<void> _pickAvatarFromDevice(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final XFile? file = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+      if (file == null) return;
+
+      final bytes = await file.readAsBytes();
+      final ext = file.name.contains('.')
+          ? file.name.split('.').last.toLowerCase()
+          : 'jpg';
+
+      if (!mounted) return;
+      _showSnackbar('Sedang memproses foto profil...');
+
+      final uploadedUrl = await _posService.uploadProductImageBytes(bytes, ext);
+      if (uploadedUrl != null && uploadedUrl.isNotEmpty) {
+        await _updateAvatar(uploadedUrl);
+      } else {
+        if (!mounted) return;
+        _showSnackbar('Gagal mengunggah foto profil', isError: true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackbar('Gagal memilih foto: $e', isError: true);
     }
   }
 
