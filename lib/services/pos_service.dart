@@ -261,78 +261,29 @@ class PosService {
     required String category,
     required int price,
     required int stock,
-    String? description,
     String? imageUrl,
     String iconName = 'fastfood',
   }) async {
     final restoId = await fetchRestaurantId();
 
-    final cleanDesc = description?.trim();
-    final cleanIcon = iconName.contains('#DESC#')
-        ? iconName.split('#DESC#')[0].trim()
-        : iconName.trim();
-    final compositeIcon = (cleanDesc != null && cleanDesc.isNotEmpty)
-        ? '$cleanIcon#DESC#$cleanDesc'
-        : cleanIcon;
-
-    final basePayload = {
+    final payload = {
       'resto_id': restoId,
       'name': name.trim(),
       'category': category.trim(),
       'price': price,
       'stock': stock,
       'is_available': stock > 0,
-      'icon_name': compositeIcon,
+      'icon_name': iconName.trim(),
       'image_url': imageUrl != null && imageUrl.trim().isNotEmpty
           ? imageUrl.trim()
           : null,
     };
 
-    final extendedPayload = {
-      ...basePayload,
-      if (cleanDesc != null && cleanDesc.isNotEmpty)
-        'description': cleanDesc,
-    };
-
-    Map<String, dynamic> res;
-    try {
-      res = await supabase
-          .from('products')
-          .insert(extendedPayload)
-          .select()
-          .single();
-    } on PostgrestException catch (e) {
-      if (e.code == '42703' ||
-          e.message.contains('column') ||
-          e.message.contains('description')) {
-        // Coba gunakan kolom alternatif 'deskripsi' jika ada
-        try {
-          final deskripsiPayload = {
-            ...basePayload,
-            if (cleanDesc != null && cleanDesc.isNotEmpty)
-              'deskripsi': cleanDesc,
-          };
-          res = await supabase
-              .from('products')
-              .insert(deskripsiPayload)
-              .select()
-              .single();
-          return DbProduct.fromMap(res);
-        } catch (_) {}
-
-        debugPrint(
-          '⚠️ [PosService] Kolom description belum tersedia di Supabase. '
-          'Jalankan skrip supabase_fix_product_description_and_receipt.sql di SQL Editor.',
-        );
-        res = await supabase
-            .from('products')
-            .insert(basePayload)
-            .select()
-            .single();
-      } else {
-        rethrow;
-      }
-    }
+    final res = await supabase
+        .from('products')
+        .insert(payload)
+        .select()
+        .single();
     return DbProduct.fromMap(res);
   }
 
@@ -342,69 +293,24 @@ class PosService {
     required String category,
     required int price,
     required int stock,
-    String? description,
     String? imageUrl,
     String iconName = 'fastfood',
   }) async {
-    final cleanDesc = description?.trim();
-    final cleanIcon = iconName.contains('#DESC#')
-        ? iconName.split('#DESC#')[0].trim()
-        : iconName.trim();
-    final compositeIcon = (cleanDesc != null && cleanDesc.isNotEmpty)
-        ? '$cleanIcon#DESC#$cleanDesc'
-        : cleanIcon;
-
-    final basePayload = {
+    final payload = {
       'name': name.trim(),
       'category': category.trim(),
       'price': price,
       'stock': stock,
       'is_available': stock > 0,
-      'icon_name': compositeIcon,
+      'icon_name': iconName.trim(),
       if (imageUrl != null) 'image_url': imageUrl.trim(),
     };
 
-    final extendedPayload = {
-      ...basePayload,
-      if (description != null)
-        'description': cleanDesc != null && cleanDesc.isNotEmpty ? cleanDesc : null,
-    };
-
-    try {
-      await supabase
-          .from('products')
-          .update(extendedPayload)
-          .eq('id', productId);
-    } on PostgrestException catch (e) {
-      if (e.code == '42703' ||
-          e.message.contains('column') ||
-          e.message.contains('description')) {
-        // Coba alternatif kolom 'deskripsi'
-        try {
-          final deskripsiPayload = {
-            ...basePayload,
-            if (description != null)
-              'deskripsi': cleanDesc != null && cleanDesc.isNotEmpty ? cleanDesc : null,
-          };
-          await supabase
-              .from('products')
-              .update(deskripsiPayload)
-              .eq('id', productId);
-          return;
-        } catch (_) {}
-
-        debugPrint(
-          '⚠️ [PosService] Kolom description belum tersedia di Supabase saat update. '
-          'Jalankan skrip supabase_fix_product_description_and_receipt.sql di SQL Editor.',
-        );
-        await supabase
-            .from('products')
-            .update(basePayload)
-            .eq('id', productId);
-      } else {
-        rethrow;
-      }
-    }
+    await supabase
+        .from('products')
+        .update(payload)
+        .eq('id', productId);
+  }
   }
 
   Future<void> updateProductStock(String productId, int newStock) async {

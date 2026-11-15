@@ -715,23 +715,6 @@ function buildStepperOrAddHtml(product, inCart) {
   );
 }
 
-function getProductDescription(p) {
-  if (!p) return '';
-  if (p.description && String(p.description).trim()) {
-    return String(p.description).trim();
-  }
-  if (p.deskripsi && String(p.deskripsi).trim()) {
-    return String(p.deskripsi).trim();
-  }
-  if (p.icon_name && String(p.icon_name).includes('#DESC#')) {
-    const parts = String(p.icon_name).split('#DESC#');
-    if (parts.length > 1 && parts.slice(1).join('#DESC#').trim()) {
-      return parts.slice(1).join('#DESC#').trim();
-    }
-  }
-  return '';
-}
-
 function renderMenuGrid() {
   if (!tableValidated) return;
   const menuGrid = document.getElementById('menuGrid');
@@ -795,13 +778,6 @@ function renderMenuGrid() {
           '" loading="lazy" onerror="this.remove()" />'
         : '';
 
-      const rawDesc = getProductDescription(p);
-      const descHtml = rawDesc
-        ? '<div class="menu-desc-container"><p class="menu-desc-snippet">' +
-          escapeHtml(rawDesc) +
-          '</p></div>'
-        : '';
-
       return (
         '<article class="menu-card ' +
         (outOfStock ? 'out-of-stock' : '') +
@@ -827,7 +803,6 @@ function renderMenuGrid() {
         '<h3 class="menu-name">' +
         escapeHtml(p.name) +
         '</h3>' +
-        descHtml +
         '</div>' +
         '</button>' +
         '<div class="menu-footer">' +
@@ -900,18 +875,6 @@ function renderProductDetailDialog(productId) {
     '</h3>' +
     '<div class="detail-price tabular">' +
     formatRupiah(product.price) +
-    '</div>' +
-    '<div class="detail-desc-box">' +
-    '<div class="detail-desc-label">Deskripsi Lengkap</div>' +
-    '<p class="detail-desc' +
-    (getProductDescription(product) ? '' : ' text-muted') +
-    '">' +
-    escapeHtml(
-      getProductDescription(product)
-        ? getProductDescription(product)
-        : 'Belum ada deskripsi makanan yang dicantumkan pada aplikasi kasir.'
-    ) +
-    '</p>' +
     '</div>';
 
   const footer = document.getElementById('detailModalFooter');
@@ -1370,6 +1333,11 @@ function restoreLastOrderFromStorage() {
     if (!raw) return;
     const parsed = JSON.parse(raw);
     if (parsed && parsed.invoiceNo && Number(parsed.tableNumber) === Number(lockedTableNumber)) {
+      const st = String(parsed.status || '').toLowerCase().trim();
+      if (st === 'pesanan selesai' || st === 'selesai' || st === 'dibatalkan') {
+        localStorage.removeItem(getLastOrderStorageKey());
+        return;
+      }
       state.lastOrder = parsed;
       updateActiveOrderIndicators();
     }
@@ -1403,6 +1371,22 @@ async function fetchLatestTableOrderFromServer() {
     if (!Array.isArray(rows) || rows.length === 0) return state.lastOrder;
 
     const latest = rows[0];
+    const latestStatus = String(latest.status || '').toLowerCase().trim();
+    if (
+      latestStatus === 'pesanan selesai' ||
+      latestStatus === 'selesai' ||
+      latestStatus === 'dibatalkan'
+    ) {
+      // Pesanan sebelumnya untuk meja ini sudah selesai / lunas atau dibatalkan.
+      // Meja ini sekarang BERSIH dan siap untuk customer baru yang duduk di meja ini.
+      if (state.lastOrder && String(state.lastOrder.tableNumber) === String(lockedTableNumber)) {
+        clearLastOrder();
+        state.lastOrder = null;
+        updateActiveOrderIndicators();
+      }
+      return null;
+    }
+
     // Hanya tampilkan pesanan dari 12 jam terakhir agar pesanan hari sebelumnya tidak membingungkan
     const createdMs = Date.parse(latest.created_at || '');
     if (Number.isFinite(createdMs) && Date.now() - createdMs > 12 * 60 * 60 * 1000) {
@@ -1535,9 +1519,9 @@ function renderEmptyCheckOrderModal() {
   if (refreshBtn) refreshBtn.hidden = true;
   if (emptyDesc && lockedTableNumber) {
     emptyDesc.innerHTML =
-      'Belum ada pesanan aktif dari <strong>' +
+      'Meja <strong>' +
       escapeHtml(formatTableLabel(lockedTableNumber)) +
-      '</strong> yang dikirim ke kasir. Pilih menu lalu tekan <strong>Buat Pesanan</strong> untuk mengirim pesanan ke kasir.';
+      '</strong> siap untuk pesanan baru! Silakan pilih menu di layar lalu tekan <strong>Buat Pesanan</strong> untuk memesan hidangan favorit Anda.';
   }
 }
 
@@ -1655,7 +1639,17 @@ function renderOrderFlowModal(order) {
   const clockSvg =
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>';
 
-  if (paid) {
+  const isFinished =
+    String(order.status || '').toLowerCase() === 'pesanan selesai' ||
+    String(order.status || '').toLowerCase() === 'selesai';
+
+  if (isFinished) {
+    banner.classList.add('completed');
+    iconEl.innerHTML = checkSvg;
+    titleEl.textContent = 'Pesanan Selesai & Lunas';
+    subEl.textContent = 'Terima kasih telah berkunjung ke restoran kami! Meja siap untuk pesanan berikutnya.';
+    pillHtml = '<span class="status-pill paid">SELESAI</span>';
+  } else if (paid) {
     banner.classList.add('completed');
     iconEl.innerHTML = checkSvg;
     titleEl.textContent = 'Pembayaran Dikonfirmasi (PAID)';
@@ -1751,7 +1745,14 @@ function renderOrderFlowModal(order) {
     '<div class="receipt-line receipt-line--total">' +
     '<span>Total Pembayaran</span><strong class="tabular">' +
     formatRupiah(order.total) +
-    '</strong></div>';
+    '</strong></div>' +
+    (isFinished
+      ? '<div style="margin-top:16px;">' +
+        '<button type="button" class="btn-primary-full" style="background:#10b981;box-shadow:0 4px 14px rgba(16,185,129,0.35);font-weight:700;" onclick="resetTableForNextCustomer()">' +
+        'Mulai Pesanan Baru di Meja Ini' +
+        '</button>' +
+        '</div>'
+      : '');
 }
 
 async function confirmDemoQrisSimulation() {
@@ -1822,15 +1823,34 @@ async function confirmDemoQrisSimulation() {
   }
 }
 
+function resetTableForNextCustomer() {
+  if (state.tableResetTimer) {
+    clearTimeout(state.tableResetTimer);
+    state.tableResetTimer = null;
+  }
+  stopOrderListeners();
+  clearLastOrder();
+  state.lastOrder = null;
+  state.cart = {};
+  saveCart();
+  closeOrderFlowModal();
+  renderCartModalContent();
+  renderMenuGrid();
+  updateActiveOrderIndicators();
+  showToast('Meja ' + (lockedTableNumber ? 'Meja ' + lockedTableNumber : '') + ' siap untuk pesanan baru!');
+}
+
 function applyRealtimeOrderRowUpdate(row) {
   if (!row || !state.lastOrder || row.id !== state.lastOrder.id) return;
 
   const nextStatus = row.status || state.lastOrder.status;
+  const isFinished =
+    String(nextStatus).toLowerCase() === 'pesanan selesai' ||
+    String(nextStatus).toLowerCase() === 'selesai';
+
   const nextPayStatus =
     row.payment_status ||
-    (nextStatus.toLowerCase() === 'pesanan selesai' || nextStatus.toLowerCase() === 'selesai'
-      ? 'paid'
-      : state.lastOrder.paymentStatus);
+    (isFinished ? 'paid' : state.lastOrder.paymentStatus);
 
   const changed =
     nextStatus !== state.lastOrder.status ||
@@ -1842,8 +1862,21 @@ function applyRealtimeOrderRowUpdate(row) {
     state.lastOrder.paymentStatus = nextPayStatus;
     saveLastOrder(state.lastOrder);
     renderOrderFlowModal(state.lastOrder);
+    updateActiveOrderIndicators();
 
-    if (!wasPaid && isOrderPaid(state.lastOrder)) {
+    if (isFinished) {
+      showToast('Pesanan telah selesai & lunas! Meja siap untuk pesanan berikutnya.');
+      state.cart = {};
+      saveCart();
+      renderCartModalContent();
+      renderMenuGrid();
+
+      // Beri jeda agar customer melihat status selesai, lalu otomatis reset meja untuk customer berikutnya
+      if (state.tableResetTimer) clearTimeout(state.tableResetTimer);
+      state.tableResetTimer = setTimeout(() => {
+        resetTableForNextCustomer();
+      }, 7000);
+    } else if (!wasPaid && isOrderPaid(state.lastOrder)) {
       showToast('Pembayaran telah dikonfirmasi oleh kasir (PAID)');
     }
   }

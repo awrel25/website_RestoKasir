@@ -451,23 +451,11 @@ class _CashierScreenState extends State<CashierScreen> {
                 product.name,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              if (product.description != null && product.description!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  product.description!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                  ),
-                ),
-              ],
               const SizedBox(height: 12),
               ListTile(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 leading: const Icon(Icons.edit_rounded, color: AppColors.primary),
-                title: const Text('Ubah Produk & Deskripsi'),
+                title: const Text('Ubah Data Produk'),
                 onTap: () {
                   Navigator.pop(ctx);
                   _openEditProduct(product);
@@ -1262,19 +1250,6 @@ class _CashierScreenState extends State<CashierScreen> {
                           fontWeight: out ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
-                      if (p.description != null &&
-                          p.description!.trim().isNotEmpty) ...[
-                        Text(
-                          p.description!.trim(),
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            color: muted,
-                            fontStyle: FontStyle.italic,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
                       const SizedBox(height: 4),
                       Text(
                         _formatRupiah(p.price),

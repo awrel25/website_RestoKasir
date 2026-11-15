@@ -29,7 +29,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _stockController = TextEditingController(text: '10');
-  final _descriptionController = TextEditingController();
   final _imageUrlController = TextEditingController();
 
   String _selectedCategory = 'Makanan Utama';
@@ -46,7 +45,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _nameController.text = p.name;
       _priceController.text = p.price.toString();
       _stockController.text = p.stock.toString();
-      _descriptionController.text = p.description ?? '';
       _imageUrlController.text = p.imageUrl ?? '';
       _selectedCategory = p.category;
       _selectedIcon = p.iconName;
@@ -86,7 +84,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _nameController.dispose();
     _priceController.dispose();
     _stockController.dispose();
-    _descriptionController.dispose();
     _imageUrlController.dispose();
     super.dispose();
   }
@@ -204,7 +201,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     final name = _nameController.text.trim();
     final price = int.tryParse(_priceController.text.trim()) ?? 0;
     final stock = int.tryParse(_stockController.text.trim()) ?? 0;
-    final description = _descriptionController.text.trim();
     String? finalImageUrl = _imageUrlController.text.trim();
 
     setState(() => _isLoading = true);
@@ -228,7 +224,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
           category: _selectedCategory,
           price: price,
           stock: stock,
-          description: description.isNotEmpty ? description : null,
           imageUrl: finalImageUrl.isNotEmpty ? finalImageUrl : null,
           iconName: _selectedIcon,
         );
@@ -238,7 +233,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
           category: _selectedCategory,
           price: price,
           stock: stock,
-          description: description.isNotEmpty ? description : null,
           imageUrl: finalImageUrl.isNotEmpty ? finalImageUrl : null,
           iconName: _selectedIcon,
         );
@@ -516,44 +510,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           Expanded(child: stockField),
                         ],
                       );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Deskripsi Menu
-                  Text(
-                    'Deskripsi Makanan / Menu *',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: isDark ? AppColors.darkText : AppColors.lightText,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Deskripsi ini akan langsung ditampilkan pada website pemesanan pelanggan tepat di atas tombol pesan.',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _descriptionController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      hintText:
-                          'Contoh: Daging ayam empuk dimasak dengan rempah pilihan, disajikan dengan nasi hangat dan lalapan segar.',
-                      prefixIcon: Padding(
-                        padding: EdgeInsets.only(bottom: 40),
-                        child: Icon(Icons.description_outlined),
-                      ),
-                    ),
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'Deskripsi makanan wajib diisi agar tampil di website';
-                      }
-                      return null;
                     },
                   ),
                   const SizedBox(height: 20),
