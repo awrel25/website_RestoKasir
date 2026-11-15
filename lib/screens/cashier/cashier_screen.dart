@@ -633,8 +633,7 @@ class _CashierScreenState extends State<CashierScreen> {
   PreferredSizeWidget _buildAppBar(bool isDark) {
     final phone = Responsive.isPhone(context);
     final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
-    final canBackToAdmin =
-        _currentProfile.isAdmin && widget.onBackToAdmin != null;
+    final canBackToAdmin = widget.onBackToAdmin != null;
 
     final title = InkWell(
       onTap: _openProfile,
@@ -687,24 +686,24 @@ class _CashierScreenState extends State<CashierScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.statusCompleted.withAlpha(35),
+                          color: AppColors.primary.withAlpha(35),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                              color: AppColors.statusCompleted.withAlpha(80)),
+                              color: AppColors.primary.withAlpha(80)),
                         ),
-                        child: Text(
-                          _currentProfile.role.toUpperCase(),
-                          style: const TextStyle(
+                        child: const Text(
+                          'POS KASIR',
+                          style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.statusCompleted,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
                     ],
                   ),
                   Text(
-                    'Kasir: ${_currentProfile.fullName}',
+                    'Petugas: ${_currentProfile.fullName}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: phone ? 11 : 12, color: muted),

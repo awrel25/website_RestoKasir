@@ -84,12 +84,18 @@ class _ResetPasswordOtpScreenState extends State<ResetPasswordOtpScreen> {
     setState(() => loading = true);
 
     try {
-      await supabase.auth
-          .signInWithOtp(
-            email: widget.email,
-            shouldCreateUser: false,
-          )
-          .timeout(const Duration(seconds: 15));
+      try {
+        await supabase.auth
+            .resetPasswordForEmail(widget.email)
+            .timeout(const Duration(seconds: 15));
+      } catch (_) {
+        await supabase.auth
+            .signInWithOtp(
+              email: widget.email,
+              shouldCreateUser: false,
+            )
+            .timeout(const Duration(seconds: 15));
+      }
 
       if (!mounted) return;
 

@@ -251,7 +251,7 @@ class UserProfile {
   final String id;
   final String fullName;
   final String email;
-  final String role; // 'admin' atau 'kasir'
+  final String role; // Tetap dipertahankan untuk kompatibilitas data ('admin'/'kasir'/dll)
   final String? restoId;
   final String? avatarUrl;
   final String? phone;
@@ -260,15 +260,15 @@ class UserProfile {
     required this.id,
     required this.fullName,
     required this.email,
-    required this.role,
+    this.role = 'admin',
     this.restoId,
     this.avatarUrl,
     this.phone,
   });
 
   factory UserProfile.fromMap(Map<String, dynamic> map) {
-    final rawRole = (map['role']?.toString() ?? 'kasir').toLowerCase().trim();
-    final normalizedRole = (rawRole == 'admin' || rawRole == 'owner') ? 'admin' : 'kasir';
+    final rawRole = (map['role']?.toString() ?? 'admin').toLowerCase().trim();
+    final normalizedRole = rawRole == 'owner' ? 'admin' : (rawRole.isEmpty ? 'admin' : rawRole);
     return UserProfile(
       id: map['id']?.toString() ?? '',
       fullName: map['full_name']?.toString() ?? 'Pengguna',
@@ -306,15 +306,16 @@ class UserProfile {
     return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
   }
 
-  bool get isAdmin => role == 'admin';
-  bool get isKasir => role == 'kasir';
+  // Dalam sistem terpadu tanpa role, seluruh pengguna memiliki akses penuh ke fitur aplikasi
+  bool get isAdmin => true;
+  bool get isKasir => false;
 }
 
 class RestaurantMember {
   final String id;
   final String? userId;
   final String restaurantId;
-  final String role; // 'ADMIN' atau 'KASIR'
+  final String role; // Kompatibilitas skema database
   final String status; // 'ACTIVE', 'INVITED', 'INACTIVE'
   final String? invitedEmail;
   final DateTime createdAt;
@@ -323,20 +324,18 @@ class RestaurantMember {
     required this.id,
     this.userId,
     required this.restaurantId,
-    required this.role,
+    this.role = 'ADMIN',
     this.status = 'ACTIVE',
     this.invitedEmail,
     required this.createdAt,
   });
 
   factory RestaurantMember.fromMap(Map<String, dynamic> map) {
-    final rawRole = map['role']?.toString().toUpperCase().trim() ?? 'KASIR';
-    final normalizedRole = (rawRole == 'ADMIN' || rawRole == 'OWNER') ? 'ADMIN' : 'KASIR';
     return RestaurantMember(
       id: map['id']?.toString() ?? '',
       userId: map['user_id']?.toString(),
       restaurantId: map['restaurant_id']?.toString() ?? '',
-      role: normalizedRole,
+      role: map['role']?.toString().toUpperCase().trim() ?? 'ADMIN',
       status: map['status']?.toString().toUpperCase() ?? 'ACTIVE',
       invitedEmail: map['invited_email']?.toString(),
       createdAt: map['created_at'] != null
@@ -345,8 +344,9 @@ class RestaurantMember {
     );
   }
 
-  bool get isAdmin => role == 'ADMIN';
-  bool get isKasir => role == 'KASIR';
+  // Seluruh anggota aktif memiliki akses setara
+  bool get isAdmin => true;
+  bool get isKasir => false;
   bool get isActive => status == 'ACTIVE';
   bool get isInvited => status == 'INVITED';
 }

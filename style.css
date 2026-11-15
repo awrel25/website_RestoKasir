@@ -1323,6 +1323,8 @@ dialog.app-dialog::backdrop {
   font-size: 0.84rem;
   color: var(--text);
   line-height: 1.5;
+  white-space: pre-line;
+  word-break: break-word;
 }
 
 .detail-table-note {
@@ -1332,16 +1334,18 @@ dialog.app-dialog::backdrop {
   margin-bottom: 0.25rem;
 }
 
-.menu-desc-snippet {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.35;
+.menu-desc-container {
   margin-top: 0.25rem;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
+  width: 100%;
+}
+
+.menu-desc-snippet {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  white-space: pre-line;
+  word-break: break-word;
+  margin: 0;
 }
 
 .detail-qty-row {

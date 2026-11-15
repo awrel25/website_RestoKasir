@@ -21,7 +21,7 @@ void main() {
   });
 
   group('Pengujian Sistem Reset Password RestoKasir', () {
-    testWidgets('ForgotPasswordScreen menampilkan toggle metode Link Email dan Kode OTP',
+    testWidgets('ForgotPasswordScreen menampilkan input email dan tombol Kirim Kode OTP tanpa link email',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -30,17 +30,11 @@ void main() {
         ),
       );
 
-      expect(find.text('Reset Kata Sandi'), findsWidgets);
+      expect(find.text('Lupa Kata Sandi'), findsWidgets);
       expect(find.text('Email Terdaftar'), findsOneWidget);
-      expect(find.text('Link Email'), findsOneWidget);
-      expect(find.text('Kode OTP'), findsOneWidget);
-      expect(find.text('Kirim Link Reset via Email'), findsOneWidget);
-
-      // Beralih ke metode Kode OTP
-      await tester.tap(find.text('Kode OTP'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Kirim Kode OTP via Email'), findsOneWidget);
+      expect(find.text('Kirim Kode OTP'), findsOneWidget);
+      // Memastikan metode link email tidak lagi muncul
+      expect(find.text('Link Email'), findsNothing);
     });
 
     testWidgets('ResetPasswordOtpScreen menampilkan input 6-digit OTP dan countdown timer',
@@ -54,7 +48,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Verifikasi Kode OTP'), findsWidgets);
+      expect(find.text('Verifikasi OTP'), findsWidgets);
       expect(find.text('kasir@restoran.com'), findsOneWidget);
       expect(find.byType(OtpSixDigitField), findsOneWidget);
       expect(find.text('Verifikasi & Lanjutkan'), findsOneWidget);
@@ -79,7 +73,7 @@ void main() {
 
       expect(find.text('Buat Kata Sandi Baru'), findsWidgets);
       expect(find.text('Password Baru'), findsOneWidget);
-      expect(find.text('Konfirmasi Password Baru'), findsOneWidget);
+      expect(find.text('Konfirmasi Password'), findsOneWidget);
 
       // Kriteria checklist terlihat
       expect(find.text('Minimal 6 karakter'), findsOneWidget);

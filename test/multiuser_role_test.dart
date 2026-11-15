@@ -262,9 +262,8 @@ void main() {
 
       expect(resKasir1.status, OnboardingStatus.readyForDashboard);
       expect(resKasir1.restoId, restoId);
-      expect(resKasir1.profile?.role, 'kasir');
-      expect(resKasir1.profile?.isKasir, true);
-      expect(resKasir1.profile?.isAdmin, false);
+      // Dalam sistem tanpa role, seluruh akun yang terhubung ke resto memiliki akses penuh
+      expect(resKasir1.profile?.isAdmin, true);
 
       // 4. Kasir 2 login/register
       final resKasir2 = await authService.resolveAfterSignIn(
@@ -275,12 +274,10 @@ void main() {
 
       expect(resKasir2.status, OnboardingStatus.readyForDashboard);
       expect(resKasir2.restoId, restoId);
-      expect(resKasir2.profile?.role, 'kasir');
-      expect(resKasir2.profile?.isKasir, true);
-      expect(resKasir2.profile?.isAdmin, false);
+      expect(resKasir2.profile?.isAdmin, true);
     });
 
-    test('4. Akun Admin dan Kasir memiliki sesi independen pada Restaurant ID yang sama', () async {
+    test('4. Akun yang tergabung dalam restoran memiliki sesi independen pada Restaurant ID yang sama', () async {
       final restoId = await authService.saveRestaurantForUser(
         userId: 'admin-1',
         name: 'Resto Nusantara',
@@ -306,7 +303,7 @@ void main() {
       expect(kasirSession.restoId, restoId);
       expect(adminSession.profile?.id != kasirSession.profile?.id, true);
       expect(adminSession.profile?.isAdmin, true);
-      expect(kasirSession.profile?.isKasir, true);
+      expect(kasirSession.profile?.isAdmin, true);
     });
 
     test('5. Karyawan yang belum diundang tidak dapat bergabung secara otomatis ke restoran', () async {

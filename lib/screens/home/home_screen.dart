@@ -30,10 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _initRoleAndData();
+    _initUserData();
   }
 
-  Future<void> _initRoleAndData() async {
+  Future<void> _initUserData() async {
     if (mounted) {
       setState(() {
         _isLoading = true;
@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: _initRoleAndData,
+                        onPressed: _initUserData,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -201,29 +201,19 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // ROLE BASED ROUTING & RESTRICTION:
-    // 1. Kasir: strictly gets CashierScreen. No access to Admin features.
-    // 2. Admin: gets AdminScreen by default, but can preview/help with Cashier POS if desired.
-    if (profile.isAdmin) {
-      if (_adminViewingPos) {
-        return CashierScreen(
-          userProfile: profile,
-          restaurantName: _restaurantName,
-          onBackToAdmin: () => setState(() => _adminViewingPos = false),
-        );
-      }
-      return AdminScreen(
+    // Seluruh pengguna memiliki hak akses yang sama ke Dashboard Admin dan Kasir POS
+    if (_adminViewingPos) {
+      return CashierScreen(
         userProfile: profile,
         restaurantName: _restaurantName,
-        onOpenPos: () => setState(() => _adminViewingPos = true),
+        onBackToAdmin: () => setState(() => _adminViewingPos = false),
       );
     }
 
-    // Role is 'kasir': Kasir CANNOT access AdminScreen
-    return CashierScreen(
+    return AdminScreen(
       userProfile: profile,
       restaurantName: _restaurantName,
-      onBackToAdmin: null, // Kasir cannot switch to admin
+      onOpenPos: () => setState(() => _adminViewingPos = true),
     );
   }
 }

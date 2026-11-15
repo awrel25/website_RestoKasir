@@ -29,6 +29,8 @@ const state = {
   lastOrder: null,
   statusPollTimer: null,
   realtimeChannel: null,
+  productsRealtimeChannel: null,
+  productsPollTimer: null,
   activeDetailProductId: null,
 };
 
@@ -374,6 +376,7 @@ async function bootstrapOrderPage() {
       detectExtendedOrderSchema(),
       fetchLatestTableOrderFromServer(),
     ]);
+    startProductsRealtimeListener();
   } catch (err) {
     console.error('Bootstrap error:', err);
     lockedTableNumber = parsed.tableNumber;
@@ -407,14 +410,67 @@ function sortProductsNewestFirst(list) {
   });
 }
 
-async function fetchMenuProducts() {
+function updateDynamicCategoryTabs() {
+  const tabs = document.getElementById('categoryTabs');
+  if (!tabs) return;
+
+  const defaultOrder = [
+    'Semua',
+    'Makanan Utama',
+    'Snack & Camilan',
+    'Minuman',
+    'Dessert',
+    'Paket Spesial',
+  ];
+  const presentCategories = Array.from(
+    new Set(
+      state.products
+        .map((p) => p && p.category && String(p.category).trim())
+        .filter(Boolean)
+    )
+  );
+
+  const merged = ['Semua'];
+  for (const cat of defaultOrder.slice(1)) {
+    if (presentCategories.includes(cat) && !merged.includes(cat)) {
+      merged.push(cat);
+    }
+  }
+  for (const cat of presentCategories) {
+    if (!merged.includes(cat)) {
+      merged.push(cat);
+    }
+  }
+
+  if (state.selectedCategory !== 'Semua' && !merged.includes(state.selectedCategory)) {
+    state.selectedCategory = 'Semua';
+  }
+
+  tabs.innerHTML = merged
+    .map(
+      (cat) =>
+        '<button type="button" class="cat-tab ' +
+        (cat === state.selectedCategory ? 'active' : '') +
+        '" data-cat="' +
+        escapeHtml(cat) +
+        '">' +
+        escapeHtml(cat) +
+        '</button>'
+    )
+    .join('');
+}
+
+async function fetchMenuProducts(options = {}) {
+  const silent = Boolean(options && options.silent);
   const loadingState = document.getElementById('loadingState');
   const menuGrid = document.getElementById('menuGrid');
   const emptyState = document.getElementById('emptyState');
 
-  if (loadingState) loadingState.hidden = false;
-  if (menuGrid) menuGrid.hidden = true;
-  if (emptyState) emptyState.hidden = true;
+  if (!silent) {
+    if (loadingState) loadingState.hidden = false;
+    if (menuGrid) menuGrid.hidden = true;
+    if (emptyState) emptyState.hidden = true;
+  }
 
   try {
     let prodUrl = SUPABASE_URL + '/rest/v1/products?select=*&order=created_at.desc,name.asc';
@@ -428,9 +484,46 @@ async function fetchMenuProducts() {
     }
     const products = await prodRes.json();
     const validProducts = (Array.isArray(products) ? products : []).filter(
-      (p) => p && p.id && p.name && String(p.name).trim() && Number(p.price) >= 0
+      (p) =>
+        p &&
+        p.id &&
+        p.name &&
+        String(p.name).trim() &&
+        Number(p.price) >= 0 &&
+        p.is_available !== false &&
+        p.is_active !== false
     );
     state.products = sortProductsNewestFirst(validProducts);
+
+    // Rekonsiliasi keranjang dengan data produk terbaru dari database Supabase
+    let cartModified = false;
+    const freshMap = new Map(validProducts.map((p) => [String(p.id), p]));
+    for (const [pid, item] of Object.entries(state.cart)) {
+      const fresh = freshMap.get(String(pid));
+      if (!fresh || fresh.is_available === false || fresh.is_active === false) {
+        delete state.cart[pid];
+        cartModified = true;
+        showToast((item.product?.name || 'Menu') + ' sudah tidak tersedia dan dihapus dari keranjang');
+      } else {
+        item.product = fresh;
+        const maxStock = Number(fresh.stock) || 0;
+        if (item.qty > maxStock) {
+          item.qty = maxStock;
+          cartModified = true;
+          showToast('Jumlah ' + fresh.name + ' disesuaikan dengan sisa stok (' + maxStock + ')');
+        }
+        if (item.qty <= 0) {
+          delete state.cart[pid];
+          cartModified = true;
+        }
+      }
+    }
+    if (cartModified) {
+      updateFloatingCartBar();
+      renderCartModalContent();
+    }
+
+    updateDynamicCategoryTabs();
 
     if (loadingState) loadingState.hidden = true;
     renderMenuGrid();
@@ -440,10 +533,12 @@ async function fetchMenuProducts() {
     }
   } catch (err) {
     console.error('Gagal memuat menu:', err);
-    if (loadingState) loadingState.hidden = true;
-    document.getElementById('emptyDesc').textContent =
-      'Gagal memuat daftar menu dari server. Silakan coba lagi.';
-    if (emptyState) emptyState.hidden = false;
+    if (!silent) {
+      if (loadingState) loadingState.hidden = true;
+      document.getElementById('emptyDesc').textContent =
+        'Gagal memuat daftar menu dari server. Silakan coba lagi.';
+      if (emptyState) emptyState.hidden = false;
+    }
   }
 }
 
@@ -683,6 +778,13 @@ function renderMenuGrid() {
           '" loading="lazy" onerror="this.remove()" />'
         : '';
 
+      const rawDesc = String(p.description || p.deskripsi || '').trim();
+      const descHtml = rawDesc
+        ? '<div class="menu-desc-container"><p class="menu-desc-snippet">' +
+          escapeHtml(rawDesc) +
+          '</p></div>'
+        : '';
+
       return (
         '<article class="menu-card ' +
         (outOfStock ? 'out-of-stock' : '') +
@@ -708,11 +810,7 @@ function renderMenuGrid() {
         '<h3 class="menu-name">' +
         escapeHtml(p.name) +
         '</h3>' +
-        (p.description && String(p.description).trim()
-          ? '<p class="menu-desc-snippet">' +
-            escapeHtml(String(p.description).trim()) +
-            '</p>'
-          : '') +
+        descHtml +
         '</div>' +
         '</button>' +
         '<div class="menu-footer">' +
@@ -787,13 +885,13 @@ function renderProductDetailDialog(productId) {
     formatRupiah(product.price) +
     '</div>' +
     '<div class="detail-desc-box">' +
-    '<div class="detail-desc-label">Deskripsi Makanan</div>' +
+    '<div class="detail-desc-label">Deskripsi Lengkap</div>' +
     '<p class="detail-desc' +
-    (product.description && String(product.description).trim() ? '' : ' text-muted') +
+    (String(product.description || product.deskripsi || '').trim() ? '' : ' text-muted') +
     '">' +
     escapeHtml(
-      product.description && String(product.description).trim()
-        ? String(product.description).trim()
+      String(product.description || product.deskripsi || '').trim()
+        ? String(product.description || product.deskripsi || '').trim()
         : 'Belum ada deskripsi makanan yang dicantumkan pada aplikasi kasir.'
     ) +
     '</p>' +
@@ -1786,6 +1884,54 @@ function startOrderListeners(order) {
   }, 4000);
 }
 
+function startProductsRealtimeListener() {
+  stopProductsRealtimeListener();
+  if (!state.restoId) return;
+
+  const sb = getSupabaseClient();
+  if (sb && typeof sb.channel === 'function') {
+    try {
+      state.productsRealtimeChannel = sb
+        .channel('resto-products-live-' + state.restoId)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'products',
+          },
+          (payload) => {
+            console.log('Realtime products change detected:', payload && payload.eventType);
+            fetchMenuProducts({ silent: true });
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime products subscriber failed:', e);
+    }
+  }
+
+  // Backup interval: polling data produk setiap 6 detik agar update otomatis jika koneksi websocket terputus
+  state.productsPollTimer = setInterval(() => {
+    fetchMenuProducts({ silent: true });
+  }, 6000);
+}
+
+function stopProductsRealtimeListener() {
+  if (state.productsPollTimer) {
+    clearInterval(state.productsPollTimer);
+    state.productsPollTimer = null;
+  }
+  if (state.productsRealtimeChannel) {
+    try {
+      state.productsRealtimeChannel.unsubscribe();
+    } catch (e) {
+      // Ignore
+    }
+    state.productsRealtimeChannel = null;
+  }
+}
+
 function stopOrderListeners() {
   if (state.statusPollTimer) {
     clearInterval(state.statusPollTimer);
@@ -1799,6 +1945,7 @@ function stopOrderListeners() {
     }
     state.realtimeChannel = null;
   }
+  stopProductsRealtimeListener();
 }
 
 function showToast(msg) {

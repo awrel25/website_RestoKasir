@@ -191,60 +191,6 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = ThemeController.isDark(context);
-
-    if (!widget.userProfile.isAdmin) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Akses Dibatasi')),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.admin_panel_settings_outlined,
-                  size: 72,
-                  color: AppColors.statusCancelled,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Akses Khusus Administrator',
-                  style: AppFonts.display(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Akun Anda terdaftar sebagai ${widget.userProfile.role.toUpperCase()}. Anda tidak memiliki hak akses dashboard admin.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  onPressed: widget.onOpenPos,
-                  icon: const Icon(Icons.point_of_sale_rounded),
-                  label: const Text('Kembali ke Kasir POS'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     final phone = Responsive.isPhone(context);
 
     return Scaffold(
@@ -296,7 +242,7 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                       ),
                       Text(
-                        '${_currentProfile.role.toUpperCase()} • ${_currentProfile.fullName}',
+                        'RestoKasir • ${_currentProfile.fullName}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -779,11 +725,12 @@ class _AdminScreenState extends State<AdminScreen>
                                   showTitles: true,
                                   reservedSize: 36,
                                   getTitlesWidget: (value, meta) {
-                                    if (value == 0)
+                                    if (value == 0) {
                                       return const Text(
                                         '0',
                                         style: TextStyle(fontSize: 9),
                                       );
+                                    }
                                     return Text(
                                       '${value.toInt()}k',
                                       style: TextStyle(
@@ -1568,13 +1515,11 @@ class _AdminScreenState extends State<AdminScreen>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    member.role.toUpperCase(),
-                    style: TextStyle(
+                    'STAFF RESTO',
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isStaffAdmin
-                          ? AppColors.primary
-                          : AppColors.statusPending,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),

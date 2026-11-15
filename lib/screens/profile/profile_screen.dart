@@ -121,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   void initState() {
     super.initState();
     _currentProfile = widget.userProfile;
-    final tabCount = _currentProfile.isAdmin ? 5 : 4;
+    const tabCount = 5;
     _tabController = TabController(
       length: tabCount,
       vsync: this,
@@ -181,8 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       DbAttendance? today;
       List<DbAttendance> history = [];
 
-      final effectiveSelected =
-          _currentProfile.isAdmin ? _selectedEmployeeForAttendance : null;
+      final effectiveSelected = _selectedEmployeeForAttendance;
       if (effectiveSelected != null) {
         today = await _posService.fetchTodayAttendance(
           null,
@@ -606,7 +605,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _handleClockIn() async {
     setState(() => _isClocking = true);
     try {
-      final effectiveSelected = _currentProfile.isAdmin ? _selectedEmployeeForAttendance : null;
+      final effectiveSelected = _selectedEmployeeForAttendance;
       final isEmp = effectiveSelected != null;
       final targetUserId = isEmp ? null : _currentProfile.id;
       final targetEmpId = isEmp ? effectiveSelected.id : null;
@@ -746,13 +745,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   // KELOLA KARYAWAN RESTORAN
   // ---------------------------------------------------------------------------
   void _openAddEmployeeDialog([DbEmployee? editEmp]) {
-    if (!_currentProfile.isAdmin) {
-      _showSnackbar(
-        'Akses ditolak: Hanya ADMIN yang dapat mengelola karyawan.',
-        isError: true,
-      );
-      return;
-    }
     final nameCtrl = TextEditingController(text: editEmp?.name ?? '');
     final phoneCtrl = TextEditingController(text: editEmp?.phone ?? '');
     final emailCtrl = TextEditingController(text: editEmp?.email ?? '');
@@ -999,13 +991,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _deleteEmployee(DbEmployee emp) async {
-    if (!_currentProfile.isAdmin) {
-      _showSnackbar(
-        'Akses ditolak: Hanya ADMIN yang dapat menghapus karyawan.',
-        isError: true,
-      );
-      return;
-    }
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1530,25 +1515,24 @@ class _ProfileScreenState extends State<ProfileScreen>
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
-                  tabs: [
-                    const Tab(
+                  tabs: const [
+                    Tab(
                       icon: Icon(Icons.timer_outlined, size: 20),
                       text: 'Absensi',
                     ),
-                    if (_currentProfile.isAdmin)
-                      const Tab(
-                        icon: Icon(Icons.badge_outlined, size: 20),
-                        text: 'Kelola Karyawan',
-                      ),
-                    const Tab(
+                    Tab(
+                      icon: Icon(Icons.badge_outlined, size: 20),
+                      text: 'Kelola Karyawan',
+                    ),
+                    Tab(
                       icon: Icon(Icons.person_outline_rounded, size: 20),
                       text: 'Edit Profil',
                     ),
-                    const Tab(
+                    Tab(
                       icon: Icon(Icons.security_rounded, size: 20),
                       text: 'Keamanan Sandi',
                     ),
-                    const Tab(
+                    Tab(
                       icon: Icon(Icons.settings_outlined, size: 20),
                       text: 'Preferensi',
                     ),
@@ -1570,8 +1554,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               controller: _tabController,
               children: [
                 _buildAttendanceTab(isDark, phone),
-                if (_currentProfile.isAdmin)
-                  _buildEmployeesTab(isDark, phone),
+                _buildEmployeesTab(isDark, phone),
                 _buildEditProfileTab(isDark, phone),
                 _buildSecurityTab(isDark, phone),
                 _buildPreferencesTab(isDark, phone),
@@ -1702,24 +1685,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _currentProfile.isAdmin
-                                ? AppColors.primary.withAlpha(35)
-                                : AppColors.statusCompleted.withAlpha(35),
+                            color: AppColors.primary.withAlpha(35),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: _currentProfile.isAdmin
-                                  ? AppColors.primary.withAlpha(80)
-                                  : AppColors.statusCompleted.withAlpha(80),
+                              color: AppColors.primary.withAlpha(80),
                             ),
                           ),
-                          child: Text(
-                            _currentProfile.role.toUpperCase(),
+                          child: const Text(
+                            'AKUN RESTOKASIR',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: _currentProfile.isAdmin
-                                  ? AppColors.primary
-                                  : AppColors.statusCompleted,
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
@@ -1931,10 +1908,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (_currentProfile.isAdmin) ...[
-                                _buildStaffRecapSection(isDark, false),
-                                const SizedBox(height: 24),
-                              ],
+                              _buildStaffRecapSection(isDark, false),
+                              const SizedBox(height: 24),
                               _buildAttendanceHistorySection(isDark, false),
                             ],
                           ),
@@ -1961,10 +1936,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                           isShiftFinished,
                         ),
                         const SizedBox(height: 24),
-                        if (_currentProfile.isAdmin) ...[
-                          _buildStaffRecapSection(isDark, true),
-                          const SizedBox(height: 24),
-                        ],
+                        _buildStaffRecapSection(isDark, true),
+                        const SizedBox(height: 24),
                         _buildAttendanceHistorySection(isDark, true),
                       ],
                     ),
@@ -2166,76 +2139,6 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   // WIDGET KARTU PEMILIH KARYAWAN
   Widget _buildEmployeeSelectorCard(bool isDark, bool isPhone) {
-    if (!_currentProfile.isAdmin) {
-      return Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.primary.withAlpha(25),
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.primary,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _currentProfile.fullName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Kasir Restoran • Absensi Kehadiran Mandiri',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? AppColors.darkMuted
-                            : AppColors.lightMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.statusCompleted.withAlpha(25),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'KASIR AKTIF',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.statusCompleted,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -2278,8 +2181,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
                 const SizedBox(width: 6),
-                if (_currentProfile.isAdmin)
-                  TextButton.icon(
+                TextButton.icon(
                     style: TextButton.styleFrom(
                       visualDensity: VisualDensity.compact,
                       padding: const EdgeInsets.symmetric(
@@ -3695,7 +3597,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Peran & Hak Akses (Role):',
+                                    'Status Hak Akses:',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -3723,10 +3625,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(
-                                          _currentProfile.isAdmin
-                                              ? Icons.admin_panel_settings_rounded
-                                              : Icons.point_of_sale_rounded,
+                                        const Icon(
+                                          Icons.verified_user_rounded,
                                           color: AppColors.primary,
                                         ),
                                         const SizedBox(width: 10),
@@ -3735,17 +3635,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                _currentProfile.role.toUpperCase(),
-                                                style: const TextStyle(
+                                              const Text(
+                                                'AKSES PENUH RESTORAN',
+                                                style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 13,
                                                 ),
                                               ),
                                               Text(
-                                                _currentProfile.isAdmin
-                                                    ? 'Hak akses penuh admin: produk, staf, laporan.'
-                                                    : 'Akses operasional POS kasir, pesanan & struk.',
+                                                'Akses lengkap ke seluruh fitur: POS kasir, produk, laporan & tim.',
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   color: isDark
@@ -3839,7 +3737,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         const SizedBox(height: 16),
 
                         Text(
-                          'Peran & Hak Akses (Role):',
+                          'Status Hak Akses:',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -3865,10 +3763,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                           child: Row(
                             children: [
-                              Icon(
-                                _currentProfile.isAdmin
-                                    ? Icons.admin_panel_settings_rounded
-                                    : Icons.point_of_sale_rounded,
+                              const Icon(
+                                Icons.verified_user_rounded,
                                 color: AppColors.primary,
                               ),
                               const SizedBox(width: 10),
@@ -3876,23 +3772,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      _currentProfile.role.toUpperCase(),
-                                      style: const TextStyle(
+                                    const Text(
+                                      'AKSES PENUH RESTORAN',
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13,
                                       ),
                                     ),
                                     Text(
-                                      _currentProfile.isAdmin
-                                          ? 'Hak akses penuh admin: manajemen produk, staf, laporan.'
-                                          : 'Akses operasional POS kasir, transaksi pesanan, & struk.',
+                                      'Akses lengkap ke seluruh fitur: POS kasir, produk, laporan & tim.',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: isDark
                                             ? AppColors.darkMuted
                                             : AppColors.lightMuted,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
